@@ -2,6 +2,8 @@ pragma circom 2.0.0;
 
 include "../node_modules/circomlib/circuits/sha256/sha256.circom";
 include "../node_modules/circomlib/circuits/poseidon.circom";
+
+include "../node_modules/circomlib/circuits/bitify.circom";
 include "tree.circom";
 
 template HashCheck(blockSize) {
@@ -26,7 +28,6 @@ template StorageProver(blockSize, qLen, nLevels) {
     //signal input chunkHashes[qLen][256];
     signal input chunkHashes[qLen];
     signal input indices[qLen];
-    signal input treePathIndices[qLen][nLevels];
     signal input treeSiblings[qLen][nLevels];
 
     signal input root;
@@ -44,14 +45,19 @@ template StorageProver(blockSize, qLen, nLevels) {
     // - convert indices to treePathIndices
     // - check chunkHash and treeSiblings according to treePathIndices against root
 
+    component num2Bits[qLen];
     component inclusionProofs[qLen];
     //component inclusionProofs[qLen] = MerkleTreeInclusionProof(nLevels);
     for (var i = 0; i < qLen; i++) {
+
+        num2Bits[i] = Num2Bits(nLevels);
+        num2Bits[i].in <== indices[i];
+
         inclusionProofs[i] = MerkleTreeInclusionProof(nLevels);
         inclusionProofs[i].leaf <== chunkHashes[i];
         for (var j = 0; j < nLevels; j++) {
             inclusionProofs[i].siblings[j] <== treeSiblings[i][j];
-            inclusionProofs[i].pathIndices[j] <== treePathIndices[i][j];
+            inclusionProofs[i].pathIndices[j] <== num2Bits[i].out[j];
         }
         root === inclusionProofs[i].root;
     }
