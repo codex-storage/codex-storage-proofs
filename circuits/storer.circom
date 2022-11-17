@@ -59,7 +59,7 @@ template StorageProver(blockSize, qLen, nLevels) {
     }
 
     //check that the tree is correct
-    // - check indices against limits
+    // - check indices against limits TODO
     // - convert indices to treePathIndices
     // - check chunkHash and treeSiblings according to treePathIndices against root
 
@@ -75,5 +75,6 @@ template StorageProver(blockSize, qLen, nLevels) {
 }
 
 //component main {public [blockHash]} = HashCheck(512);
+//template StorageProver(blockSize, qLen, nLevels) {
 //component main {public [indices]} = StorageProver(512, 1, 10);
-component main {public [indices]} = StorageProver(2, 10, 10);
+component main {public [indices]} = StorageProver(10, 22, 20);
