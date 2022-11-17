@@ -66,11 +66,11 @@ template StorageProver(blockSize, qLen, nLevels) {
     component checkInclusion[qLen];
     for (var i = 0; i < qLen; i++) {
 
-        checkInclusion[i] = CheckInclusion(nLevels);
-        checkInclusion[i].index <== indices[i];
-        checkInclusion[i].treeSiblings <== treeSiblings[i];
-        checkInclusion[i].chunkHash <== chunkHashes[i];
-        checkInclusion[i].root <== root;
+        CheckInclusion(nLevels)(
+            indices[i],
+            chunkHashes[i],
+            treeSiblings[i],
+            root);
     }
 }
 
