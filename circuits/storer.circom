@@ -20,6 +20,24 @@ template HashCheck(blockSize) {
     // is this enough or do we need output?
 }
 
+template CheckInclusion(nLevels) {
+    signal input index;
+    signal input chunkHash;
+    signal input treeSiblings[nLevels];
+    signal input root;
+
+    component num2Bits = Num2Bits(nLevels);
+    num2Bits.in <== index;
+
+    component inclusionProof = MerkleTreeInclusionProof(nLevels);
+    inclusionProof.leaf <== chunkHash;
+    for (var j = 0; j < nLevels; j++) {
+        inclusionProof.siblings[j] <== treeSiblings[j];
+        inclusionProof.pathIndices[j] <== num2Bits.out[j];
+    }
+    root === inclusionProof.root;
+}
+
 template StorageProver(blockSize, qLen, nLevels) {
     // blockSize: size of block in bits (sha256), or in symbols (Poseidon)
     // qLen: query length, i.e. number if indices to be proven
@@ -45,20 +63,14 @@ template StorageProver(blockSize, qLen, nLevels) {
     // - convert indices to treePathIndices
     // - check chunkHash and treeSiblings according to treePathIndices against root
 
-    component num2Bits[qLen];
-    component inclusionProofs[qLen];
+    component checkInclusion[qLen];
     for (var i = 0; i < qLen; i++) {
 
-        num2Bits[i] = Num2Bits(nLevels);
-        num2Bits[i].in <== indices[i];
-
-        inclusionProofs[i] = MerkleTreeInclusionProof(nLevels);
-        inclusionProofs[i].leaf <== chunkHashes[i];
-        for (var j = 0; j < nLevels; j++) {
-            inclusionProofs[i].siblings[j] <== treeSiblings[i][j];
-            inclusionProofs[i].pathIndices[j] <== num2Bits[i].out[j];
-        }
-        root === inclusionProofs[i].root;
+        checkInclusion[i] = CheckInclusion(nLevels);
+        checkInclusion[i].index <== indices[i];
+        checkInclusion[i].treeSiblings <== treeSiblings[i];
+        checkInclusion[i].chunkHash <== chunkHashes[i];
+        checkInclusion[i].root <== root;
     }
 }
 
