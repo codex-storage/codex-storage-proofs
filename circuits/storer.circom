@@ -21,7 +21,7 @@ template HashCheck(blockSize) {
 }
 
 template StorageProver(blockSize, qLen, nLevels) {
-    // blockSize: size of block in bits (sha256), or in ?symbols? (Poseidon)
+    // blockSize: size of block in bits (sha256), or in symbols (Poseidon)
     // qLen: query length, i.e. number if indices to be proven
     // nLevels: size of Merkle Tree in the manifest
     signal input chunks[qLen][blockSize];
@@ -47,7 +47,6 @@ template StorageProver(blockSize, qLen, nLevels) {
 
     component num2Bits[qLen];
     component inclusionProofs[qLen];
-    //component inclusionProofs[qLen] = MerkleTreeInclusionProof(nLevels);
     for (var i = 0; i < qLen; i++) {
 
         num2Bits[i] = Num2Bits(nLevels);
