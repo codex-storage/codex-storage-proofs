@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@zk-kit/protocols": "^1.11.1",
+    "circom_tester": "^0.0.19",
     "circomlib": "^2.0.2",
     "circomlibjs": "^0.0.8",
     "mocha": "^10.1.0",
