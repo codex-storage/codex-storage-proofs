@@ -75,4 +75,4 @@ template StorageProver(blockSize, qLen, nLevels) {
 //component main {public [blockHash]} = HashCheck(512);
 //template StorageProver(blockSize, qLen, nLevels) {
 //component main {public [indices]} = StorageProver(512, 1, 10);
-component main {public [indices, root]} = StorageProver(10, 22, 20);
+component main {public [indices, root]} = StorageProver(2, 1, 20);
