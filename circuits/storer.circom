@@ -63,9 +63,7 @@ template StorageProver(blockSize, qLen, nLevels) {
     // - convert indices to treePathIndices
     // - check chunkHash and treeSiblings according to treePathIndices against root
 
-    component checkInclusion[qLen];
     for (var i = 0; i < qLen; i++) {
-
         parallel CheckInclusion(nLevels)(
             indices[i],
             chunkHashes[i],
