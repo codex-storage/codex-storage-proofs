@@ -19,6 +19,9 @@ const sizeOf = value => typeSizes[typeof value](value);
 describe("Full process", function ()  {
     this.timeout(1000000000);
 
+    const r1csPath = path.join("test", "circuit", "circuit.r1cs");
+    const wasmPath = path.join("test", "circuit", "circuit.wasm");
+
     let curve;
     const ptau_0 = {type: "mem"};
     const ptau_1 = {type: "mem"};
@@ -84,7 +87,8 @@ describe("Full process", function ()  {
     });
 
     it ("groth16 setup", async () => {
-        await snarkjs.zKey.newZKey(path.join("test", "circuit", "circuit.r1cs"), ptau_final, zkey_0);
+        await snarkjs.zKey.newZKey(r1csPath, ptau_final, zkey_0);
+        console.warn(zkey_0);
     });
 
     it ("zkey contribute ", async () => {
@@ -108,7 +112,7 @@ describe("Full process", function ()  {
     });
 
     it ("zkey verify r1cs", async () => {
-        const res = await snarkjs.zKey.verifyFromR1cs(path.join("test", "circuit", "circuit.r1cs"), ptau_final, zkey_final);
+        const res = await snarkjs.zKey.verifyFromR1cs(r1csPath, ptau_final, zkey_final);
         assert(res);
     });
 
@@ -122,7 +126,7 @@ describe("Full process", function ()  {
     });
 
     it ("witness calculate", async () => {
-        await snarkjs.wtns.calculate({a: 11, b:2}, path.join("test", "circuit", "circuit.wasm"), wtns);
+        await snarkjs.wtns.calculate({a: 11, b:2}, wasmPath, wtns);
         //console.warn("witness: ", wtns);
         console.warn("witness: ", wtns.data.length, " bytes");
         console.warn("witness: ", sizeOf(wtns.data), " bytes");
@@ -143,7 +147,7 @@ describe("Full process", function ()  {
     });
 
     it ("plonk setup", async () => {
-        await snarkjs.plonk.setup(path.join("test", "circuit", "circuit.r1cs"), ptau_final, zkey_plonk);
+        await snarkjs.plonk.setup(r1csPath, ptau_final, zkey_plonk);
     });
 
     it ("zkey export verificationkey", async () => {
