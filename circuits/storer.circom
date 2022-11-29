@@ -51,11 +51,11 @@ template StorageProver(blockSize, qLen, nLevels) {
     signal input root;
 
     //check that chunks hash to given hashes
-    component hashCheck[qLen];
     for (var i = 0; i < qLen; i++) {
-        hashCheck[i] = HashCheck(blockSize);
-        hashCheck[i].block <== chunks[i];
-        hashCheck[i].blockHash <== chunkHashes[i];
+        parallel HashCheck(blockSize)(
+            chunks[i],
+            chunkHashes[i]
+        );
     }
 
     //check that the tree is correct
