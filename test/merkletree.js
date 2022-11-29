@@ -45,7 +45,7 @@ describe("MerkleTree", function ()  {
   let publicSignals;
 
   before( async () => {
-    curve = await buildBls12381();
+    curve = await buildBn128();
   });
   after( async () => {
     await curve.terminate();
