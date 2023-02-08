@@ -74,7 +74,7 @@ describe("Storer test", function () {
       "chunks": [[a], [b], [c], [d]],
       "siblings": [[bHash, parentHashR], [aHash, parentHashR], [dHash, parentHashL], [cHash, parentHashL]],
       "hashes": [aHash, bHash, cHash, dHash],
-      "path": [[0], [1], [2], [3]],
+      "path": [0, 1, 2, 3],
       "root": root,
       "salt": saltHash,
     }, true);
