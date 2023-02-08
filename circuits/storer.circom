@@ -58,6 +58,8 @@ template StorageProver(BLOCK_SIZE, QUERY_LEN, LEVELS) {
     signal input root;                          // root of the Merkle Tree
     signal input salt;                          // salt (block hash) to prevent preimage attacks
 
+    signal saltSquare <== salt * salt;          // might not be necesary as it's part of the public inputs
+
     component hashers[QUERY_LEN];
     for (var i = 0; i < QUERY_LEN; i++) {
         hashers[i] = HashCheck(BLOCK_SIZE);
@@ -74,6 +76,4 @@ template StorageProver(BLOCK_SIZE, QUERY_LEN, LEVELS) {
 
         merkelizer[i].root === root;
     }
-
-    signal saltSquare <== salt * salt; // might not be necesary as it's part of the public inputs
 }
