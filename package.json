@@ -1,6 +1,5 @@
 {
   "name": "codex-zk",
-  "type": "module",
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
@@ -11,9 +10,11 @@
   "license": "ISC",
   "dependencies": {
     "@zk-kit/protocols": "^1.11.1",
+    "chai-as-promised": "^7.1.1",
     "circom_tester": "^0.0.19",
-    "circomlib": "^2.0.2",
+    "circomlib": "^2.0.5",
     "circomlibjs": "^0.0.8",
+    "merkletreejs": "^0.3.9",
     "mocha": "^10.1.0",
     "snarkjs": "^0.5.0"
   }
