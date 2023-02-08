@@ -27,12 +27,12 @@ function merkelize(leafs) {
 
     var i = 0;
     while (i < merkle.length) {
-      newMerkle.push(digest(merkle[i] + merkle[i + 1]));
+      newMerkle.push(digestMulti([merkle[i], merkle[i + 1]]));
       i += 2;
     }
 
     if (merkle.length % 2 == 1) {
-      newMerkle.add(digest(merkle[merkle.length - 2] + merkle[merkle.length - 2]));
+      newMerkle.add(digestMulti([merkle[merkle.length - 2], merkle[merkle.length - 2]]));
     }
 
     merkle = newMerkle;
@@ -52,10 +52,12 @@ describe("Storer test", function () {
   const cHash = digestMulti(c);
   const d = Array.from(crypto.randomBytes(32).values()).map((v) => BigInt(v));
   const dHash = digestMulti(d);
+  const salt = Array.from(crypto.randomBytes(32).values()).map((v) => BigInt(v));
+  const saltHash = digestMulti(salt);
 
   it("Should merkelize", async () => {
     let root = merkelize([aHash, bHash]);
-    let hash = digest(aHash + bHash);
+    let hash = digestMulti([aHash, bHash]);
 
     assert.equal(hash, root);
   });
@@ -65,25 +67,17 @@ describe("Storer test", function () {
 
     let root = merkelize([aHash, bHash, cHash, dHash]);
 
-    const parentHash = digest(cHash + dHash);
+    const parentHashL = digestMulti([aHash, bHash]);
+    const parentHashR = digestMulti([cHash, dHash]);
+
     const witness = await cir.calculateWitness({
-      "chunks": [[a]],
-      "siblings": [[bHash, parentHash]],
-      "hashes": [aHash],
-      "path": [[3]],
+      "chunks": [[a], [b], [c], [d]],
+      "siblings": [[bHash, parentHashR], [aHash, parentHashR], [dHash, parentHashL], [cHash, parentHashL]],
+      "hashes": [aHash, bHash, cHash, dHash],
+      "path": [[0], [1], [2], [3]],
       "root": root,
+      "salt": saltHash,
     }, true);
-
-    // await cir.assertOut(witness, {out: mimc7.F.toObject(hash)});
-
-    // const arrOut = witness.slice(0, 1);
-    // const hash2 = bitArray2buffer(arrOut).toString("hex");
-
-    // console.log("hash: ", hash)
-    // console.log("hash2:", witness)
-
-    // assert.equal(hash, hash2);
   }).timeout(100000);
 
 });
-
