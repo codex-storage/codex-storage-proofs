@@ -1,78 +1,79 @@
 pragma circom 2.1.0;
 
-include "../node_modules/circomlib/circuits/sha256/sha256.circom";
-include "../node_modules/circomlib/circuits/poseidon.circom";
-
+// include "../node_modules/circomlib/circuits/poseidon.circom";
+include "../node_modules/circomlib/circuits/mimc.circom";
+// include "../node_modules/circomlib/circuits/mimcsponge.circom";
+include "../node_modules/circomlib/circuits/switcher.circom";
 include "../node_modules/circomlib/circuits/bitify.circom";
-include "tree.circom";
 
-template HashCheck(blockSize) {
-    signal input block[blockSize];
-    //signal input blockHash[256];
+template parallel MerkleProof(LEVELS) {
+    signal input leaf;
+    signal input pathElements[LEVELS];
+    signal input pathIndices;
+
+    signal output root;
+
+    component switcher[LEVELS];
+    component hasher[LEVELS];
+
+    component indexBits = Num2Bits(LEVELS);
+    indexBits.in <== pathIndices;
+
+    for (var i = 0; i < LEVELS; i++) {
+        switcher[i] = Switcher();
+
+        switcher[i].L <== i == 0 ? leaf : hasher[i - 1].out;
+        switcher[i].R <== pathElements[i];
+        switcher[i].sel <== indexBits.out[i];
+
+        // hasher[i] = Poseidon(2);
+        hasher[i] = MultiMiMC7(2, 91);
+        hasher[i].k <== 2;
+        hasher[i].in[0] <== switcher[i].outL;
+        hasher[i].in[1] <== switcher[i].outR;
+    }
+
+    root <== hasher[LEVELS - 1].out;
+}
+
+template parallel HashCheck(BLOCK_SIZE) {
+    signal input block[BLOCK_SIZE];
     signal input blockHash;
 
-    //component hash = Sha256(blockSize);
-    component hash = Poseidon(blockSize);
-    for (var i = 0; i < blockSize; i++) {
-        hash.inputs[i] <== block[i];
-    }
-    hash.out === blockHash; //is this checking the whole array?
-    // is this enough or do we need output?
+    component hash = MultiMiMC7(BLOCK_SIZE, 91);
+    hash.in <== block;
+    hash.k <== 2;
+
+    blockHash === hash.out; // assert that block matches hash
 }
 
-template CheckInclusion(nLevels) {
-    signal input index;
-    signal input chunkHash;
-    signal input treeSiblings[nLevels];
-    signal input root;
+template StorageProver(BLOCK_SIZE, QUERY_LEN, LEVELS) {
+    // BLOCK_SIZE: size of block in symbols
+    // QUERY_LEN: query length, i.e. number if indices to be proven
+    // LEVELS: size of Merkle Tree in the manifest
+    signal input chunks[QUERY_LEN][BLOCK_SIZE]; // chunks to be proven
+    signal input siblings[QUERY_LEN][LEVELS];   // siblings hashes of chunks to be proven
+    signal input path[QUERY_LEN];               // path of chunks to be proven
+    signal input hashes[QUERY_LEN];             // hashes of chunks to be proven
+    signal input root;                          // root of the Merkle Tree
+    signal input salt;                          // salt (block hash) to prevent preimage attacks
 
-    component num2Bits = Num2Bits(nLevels);
-    num2Bits.in <== index;
+    signal saltSquare <== salt * salt;          // might not be necesary as it's part of the public inputs
 
-    component inclusionProof = MerkleTreeInclusionProof(nLevels);
-    inclusionProof.leaf <== chunkHash;
-    for (var j = 0; j < nLevels; j++) {
-        inclusionProof.siblings[j] <== treeSiblings[j];
-        inclusionProof.pathIndices[j] <== num2Bits.out[j];
-    }
-    root === inclusionProof.root;
-}
-
-template StorageProver(blockSize, qLen, nLevels) {
-    // blockSize: size of block in bits (sha256), or in symbols (Poseidon)
-    // qLen: query length, i.e. number if indices to be proven
-    // nLevels: size of Merkle Tree in the manifest
-    signal input chunks[qLen][blockSize];
-    //signal input chunkHashes[qLen][256];
-    signal input chunkHashes[qLen];
-    signal input indices[qLen];
-    signal input treeSiblings[qLen][nLevels];
-
-    signal input root;
-
-    //check that chunks hash to given hashes
-    for (var i = 0; i < qLen; i++) {
-        parallel HashCheck(blockSize)(
-            chunks[i],
-            chunkHashes[i]
-        );
+    component hashers[QUERY_LEN];
+    for (var i = 0; i < QUERY_LEN; i++) {
+        hashers[i] = HashCheck(BLOCK_SIZE);
+        hashers[i].block <== chunks[i];
+        hashers[i].blockHash <== hashes[i];
     }
 
-    //check that the tree is correct
-    // - check indices against limits TODO
-    // - convert indices to treePathIndices
-    // - check chunkHash and treeSiblings according to treePathIndices against root
+    component merkelizer[QUERY_LEN];
+    for (var i = 0; i < QUERY_LEN; i++) {
+        merkelizer[i] = MerkleProof(LEVELS);
+        merkelizer[i].leaf <== hashes[i];
+        merkelizer[i].pathElements <== siblings[i];
+        merkelizer[i].pathIndices <== path[i];
 
-    for (var i = 0; i < qLen; i++) {
-        parallel CheckInclusion(nLevels)(
-            indices[i],
-            chunkHashes[i],
-            treeSiblings[i],
-            root);
+        merkelizer[i].root === root;
     }
 }
-
-//component main {public [blockHash]} = HashCheck(512);
-//template StorageProver(blockSize, qLen, nLevels) {
-//component main {public [indices]} = StorageProver(512, 1, 10);
-component main {public [indices, root]} = StorageProver(2, 1, 20);
