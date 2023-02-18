@@ -18,6 +18,11 @@ or
 at your option. These files may not be copied, modified, or distributed except according to those terms.
 
 ## Usage
+First
+```
+git clone git@github.com:status-im/codex-storage-proofs.git
+cd codex-storage-proofs/circuits
+```
 
 Preparing test key material (only suitable for testing)
 ```
