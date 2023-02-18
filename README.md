@@ -21,7 +21,9 @@ at your option. These files may not be copied, modified, or distributed except a
 First
 ```
 git clone git@github.com:status-im/codex-storage-proofs.git
-cd codex-storage-proofs/circuits
+cd codex-storage-proofs
+npm i
+cd circuits
 ```
 
 Preparing test key material (only suitable for testing)
