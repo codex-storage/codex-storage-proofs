@@ -31,7 +31,9 @@ Preparing test key material (only suitable for testing)
 ../scripts/circuit_prep.sh storer 13
 ```
 
-Running part of the code
+Running the tests:
+
+`npm test`
 ```
 npm test test/merkletree.js
 ```
