@@ -44,6 +44,7 @@ template parallel HashCheck(BLOCK_SIZE) {
     signal input block[BLOCK_SIZE];
     signal input blockHash;
 
+    // TODO: make CHUNK_SIZE a parameter
     // Split array into chunks of size 16
     var CHUNK_SIZE = 16;
     var NUM_CHUNKS = BLOCK_SIZE / CHUNK_SIZE;
