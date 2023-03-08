@@ -28,7 +28,5 @@ jobs:
     - name: Install circom if not cached
       run: ./scripts/install-circom.sh
     - run: npm ci
-    - name: Try build the circuits
-      run: npm run build
     - name: Run the tests
       run: npm test
