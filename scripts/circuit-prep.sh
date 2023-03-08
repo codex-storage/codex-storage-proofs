@@ -9,7 +9,7 @@ CURVE="${3:-bn128}"
 POTPREFIX=pot${POWER}_${CURVE}
 
 if [ ! -f ${POTPREFIX}_final.ptau ]
-then 
+then
     snarkjs powersoftau new $CURVE $POWER ${POTPREFIX}_0000.ptau -v
     snarkjs powersoftau contribute ${POTPREFIX}_0000.ptau ${POTPREFIX}_0001.ptau --name="First contribution" -v -e="random text"
     snarkjs powersoftau verify ${POTPREFIX}_0001.ptau

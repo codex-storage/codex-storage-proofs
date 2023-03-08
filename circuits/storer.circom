@@ -1,8 +1,6 @@
 pragma circom 2.1.0;
 
-// include "../node_modules/circomlib/circuits/poseidon.circom";
-include "../node_modules/circomlib/circuits/mimc.circom";
-// include "../node_modules/circomlib/circuits/mimcsponge.circom";
+include "../node_modules/circomlib/circuits/poseidon.circom";
 include "../node_modules/circomlib/circuits/switcher.circom";
 include "../node_modules/circomlib/circuits/bitify.circom";
 
@@ -26,25 +24,52 @@ template parallel MerkleProof(LEVELS) {
         switcher[i].R <== pathElements[i];
         switcher[i].sel <== indexBits.out[i];
 
-        // hasher[i] = Poseidon(2);
-        hasher[i] = MultiMiMC7(2, 91);
-        hasher[i].k <== 2;
-        hasher[i].in[0] <== switcher[i].outL;
-        hasher[i].in[1] <== switcher[i].outR;
+        hasher[i] = Poseidon(2);
+        hasher[i].inputs[0] <== switcher[i].outL;
+        hasher[i].inputs[1] <== switcher[i].outR;
     }
 
     root <== hasher[LEVELS - 1].out;
+}
+
+function min(arg1, arg2) {
+    return arg1 < arg2 ? arg1 : arg2;
 }
 
 template parallel HashCheck(BLOCK_SIZE) {
     signal input block[BLOCK_SIZE];
     signal input blockHash;
 
-    component hash = MultiMiMC7(BLOCK_SIZE, 91);
-    hash.in <== block;
-    hash.k <== 2;
+    // TODO: make CHUNK_SIZE a parameter
+    // Split array into chunks of size 16
+    var CHUNK_SIZE = 16;
+    var NUM_CHUNKS = BLOCK_SIZE / CHUNK_SIZE;
 
-    blockHash === hash.out; // assert that block matches hash
+    // Initialize an array to store hashes of each block
+    component hashes[NUM_CHUNKS];
+
+    // Loop over chunks and hash them using Poseidon()
+    for (var i = 0; i < NUM_CHUNKS; i++) {
+        var start = i * CHUNK_SIZE;
+        var end = min(start + CHUNK_SIZE, BLOCK_SIZE);
+        hashes[i] = Poseidon(CHUNK_SIZE);
+        for (var j = start; j < end; j++) {
+            hashes[i].inputs[j - start] <== block[j];
+        }
+    }
+
+    // Concatenate hashes into a single block
+    var concat[NUM_CHUNKS];
+    for (var i = 0; i < NUM_CHUNKS; i++) {
+        concat[i] = hashes[i].out;
+    }
+
+    // Hash concatenated array using Poseidon() again
+    component h = Poseidon(NUM_CHUNKS);
+    h.inputs <== concat;
+
+    // Assign output to hash signal
+    h.out === blockHash;
 }
 
 template StorageProver(BLOCK_SIZE, QUERY_LEN, LEVELS) {
