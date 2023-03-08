@@ -1,8 +1,6 @@
 pragma circom 2.1.0;
 
 include "../node_modules/circomlib/circuits/poseidon.circom";
-// include "../node_modules/circomlib/circuits/mimc.circom";
-// include "../node_modules/circomlib/circuits/mimcsponge.circom";
 include "../node_modules/circomlib/circuits/switcher.circom";
 include "../node_modules/circomlib/circuits/bitify.circom";
 
@@ -26,9 +24,7 @@ template parallel MerkleProof(LEVELS) {
         switcher[i].R <== pathElements[i];
         switcher[i].sel <== indexBits.out[i];
 
-        // hasher[i] = MultiMiMC7(2, 91);
         hasher[i] = Poseidon(2);
-        // hasher[i].k <== 2;
         hasher[i].inputs[0] <== switcher[i].outL;
         hasher[i].inputs[1] <== switcher[i].outR;
     }
