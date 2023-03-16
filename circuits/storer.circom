@@ -32,29 +32,39 @@ template parallel MerkleProof(LEVELS) {
     root <== hasher[LEVELS - 1].out;
 }
 
-function min(arg1, arg2) {
-    return arg1 < arg2 ? arg1 : arg2;
+function roundUpDiv(x, n) {
+    var last = x % n; // get the last digit
+    var div = x \ n; // get the division
+
+    if (last > 0) {
+        return div + 1;
+    } else {
+        return div;
+    }
 }
 
-template parallel HashCheck(BLOCK_SIZE) {
+template parallel HashCheck(BLOCK_SIZE, CHUNK_SIZE) {
     signal input block[BLOCK_SIZE];
-    signal input blockHash;
+    signal output hash;
 
-    // TODO: make CHUNK_SIZE a parameter
-    // Split array into chunks of size 16
-    var CHUNK_SIZE = 16;
-    var NUM_CHUNKS = BLOCK_SIZE / CHUNK_SIZE;
+    // Split array into chunks of size CHUNK_SIZE
+    var NUM_CHUNKS = roundUpDiv(BLOCK_SIZE, CHUNK_SIZE);
 
     // Initialize an array to store hashes of each block
     component hashes[NUM_CHUNKS];
 
     // Loop over chunks and hash them using Poseidon()
     for (var i = 0; i < NUM_CHUNKS; i++) {
-        var start = i * CHUNK_SIZE;
-        var end = min(start + CHUNK_SIZE, BLOCK_SIZE);
         hashes[i] = Poseidon(CHUNK_SIZE);
+
+        var start = i * CHUNK_SIZE;
+        var end = start + CHUNK_SIZE;
         for (var j = start; j < end; j++) {
-            hashes[i].inputs[j - start] <== block[j];
+            if (j >= BLOCK_SIZE) {
+                hashes[i].inputs[j - start] <== 0;
+            } else {
+                hashes[i].inputs[j - start] <== block[j];
+            }
         }
     }
 
@@ -69,13 +79,14 @@ template parallel HashCheck(BLOCK_SIZE) {
     h.inputs <== concat;
 
     // Assign output to hash signal
-    h.out === blockHash;
+    hash <== h.out;
 }
 
-template StorageProver(BLOCK_SIZE, QUERY_LEN, LEVELS) {
+template StorageProver(BLOCK_SIZE, QUERY_LEN, LEVELS, CHUNK_SIZE) {
     // BLOCK_SIZE: size of block in symbols
     // QUERY_LEN: query length, i.e. number if indices to be proven
     // LEVELS: size of Merkle Tree in the manifest
+    // CHUNK_SIZE: number of symbols to hash in one go
     signal input chunks[QUERY_LEN][BLOCK_SIZE]; // chunks to be proven
     signal input siblings[QUERY_LEN][LEVELS];   // siblings hashes of chunks to be proven
     signal input path[QUERY_LEN];               // path of chunks to be proven
@@ -87,9 +98,9 @@ template StorageProver(BLOCK_SIZE, QUERY_LEN, LEVELS) {
 
     component hashers[QUERY_LEN];
     for (var i = 0; i < QUERY_LEN; i++) {
-        hashers[i] = HashCheck(BLOCK_SIZE);
+        hashers[i] = HashCheck(BLOCK_SIZE, CHUNK_SIZE);
         hashers[i].block <== chunks[i];
-        hashers[i].blockHash <== hashes[i];
+        hashers[i].hash === hashes[i];
     }
 
     component merkelizer[QUERY_LEN];

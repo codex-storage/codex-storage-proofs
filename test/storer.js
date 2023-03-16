@@ -16,12 +16,16 @@ const Fr = new F1Field(p);
 const assert = chai.assert;
 const expect = chai.expect;
 
-function digest(input, chunkSize = 16) {
+function digest(input, chunkSize = 5) {
   let chunks = Math.ceil(input.length / chunkSize);
   let concat = [];
 
   for (let i = 0; i < chunks; i++) {
-    concat.push(poseidon(input.slice(i * chunkSize, Math.min((i + 1) * chunkSize, input.length))));
+    let chunk = input.slice(i * chunkSize, (i + 1) * chunkSize);
+    if (chunk.length < chunkSize) {
+      chunk = chunk.concat(Array(chunkSize - chunk.length).fill(0));
+    }
+    concat.push(poseidon(chunk));
   }
 
   if (concat.length > 1) {
@@ -41,12 +45,12 @@ function merkelize(leafs) {
 
     var i = 0;
     while (i < merkle.length) {
-      newMerkle.push(digest([merkle[i], merkle[i + 1]]));
+      newMerkle.push(digest([merkle[i], merkle[i + 1]], 2));
       i += 2;
     }
 
     if (merkle.length % 2 == 1) {
-      newMerkle.add(digest([merkle[merkle.length - 2], merkle[merkle.length - 2]]));
+      newMerkle.add(digest([merkle[merkle.length - 2], merkle[merkle.length - 2]], 2));
     }
 
     merkle = newMerkle;
@@ -71,7 +75,7 @@ describe("Storer test", function () {
 
   it("Should merkelize", async () => {
     let root = merkelize([aHash, bHash]);
-    let hash = digest([aHash, bHash]);
+    let hash = digest([aHash, bHash], 2);
 
     assert.equal(hash, root);
   });
@@ -81,8 +85,8 @@ describe("Storer test", function () {
 
     const root = merkelize([aHash, bHash, cHash, dHash]);
 
-    const parentHashL = digest([aHash, bHash]);
-    const parentHashR = digest([cHash, dHash]);
+    const parentHashL = digest([aHash, bHash], 2);
+    const parentHashR = digest([cHash, dHash], 2);
 
     await cir.calculateWitness({
       "chunks": [[a], [b], [c], [d]],
@@ -103,8 +107,8 @@ describe("Storer test", function () {
 
     const root = merkelize([aHash, bHash, cHash, dHash]);
 
-    const parentHashL = digest([aHash, bHash]);
-    const parentHashR = digest([cHash, dHash]);
+    const parentHashL = digest([aHash, bHash], 2);
+    const parentHashR = digest([cHash, dHash], 2);
 
     const fn = async () => {
       return await cir.calculateWitness({

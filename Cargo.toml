@@ -1,0 +1,29 @@
+[package]
+name = "codex-storage-proofs"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = [
+    "staticlib",  # Ensure it gets compiled as a (static) C library
+  # "cdylib",     # If you want a shared/dynamic C library (advanced)
+    "lib",        # For downstream Rust dependents: `examples/`, `tests/` etc.
+]
+
+[dependencies]
+ark-bn254 = { version = "0.3" }
+ark-ec = { version = "0.4", default-features = false, features = ["parallel"] }
+ark-groth16 = { version = "0.3", features = ["parallel"] }
+ark-std = { version = "0.3", default-features = false, features = ["parallel"] }
+ark-serialize = { version = "0.3", default-features = false }
+
+num-bigint = { version = "0.4", default-features = false, features = ["rand"] }
+ark-circom = { git = "https://github.com/gakonst/ark-circom.git#master", features = ["circom-2"] }
+arkworks-native-gadgets = "1.2.0"
+arkworks-utils = { version = "1.0.1", features = ["parallel", "poseidon_bn254_x5_3", "poseidon_bn254_x5_5"] }
+ark-ff = { version = "0.4.1", features = ["std"] }
+
+[dev-dependencies]
+ff = { package="ff_ce", version="0.11", features = ["derive"] }
