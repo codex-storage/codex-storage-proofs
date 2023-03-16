@@ -38,9 +38,9 @@ function roundUpDiv(x, n) {
 
     if (last > 0) {
         return div + 1;
-    } else {
-        return div;
     }
+
+    return div;
 }
 
 template parallel HashCheck(BLOCK_SIZE, CHUNK_SIZE) {
