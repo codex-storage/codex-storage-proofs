@@ -11,6 +11,6 @@ node_modules/
 
 #/target
 /Cargo.lock
-/.vscode
+.vscode
 test/circuits/artifacts
 out.log
