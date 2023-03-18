@@ -3,7 +3,7 @@ pragma circom 2.1.0;
 include "../node_modules/circomlib/circuits/poseidon.circom";
 include "../node_modules/circomlib/circuits/switcher.circom";
 include "../node_modules/circomlib/circuits/bitify.circom";
-include "./poseidon-hasher.circom";
+include "./poseidon-digest.circom";
 
 template parallel MerkleProof(LEVELS) {
     signal input leaf;
@@ -49,7 +49,7 @@ template StorageProver(BLOCK_SIZE, QUERY_LEN, LEVELS, CHUNK_SIZE) {
 
     component hashers[QUERY_LEN];
     for (var i = 0; i < QUERY_LEN; i++) {
-        hashers[i] = PoseidonHasher(BLOCK_SIZE, CHUNK_SIZE);
+        hashers[i] = PoseidonDigest(BLOCK_SIZE, CHUNK_SIZE);
         hashers[i].block <== chunks[i];
         hashers[i].hash === hashes[i];
     }

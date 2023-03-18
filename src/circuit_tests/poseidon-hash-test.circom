@@ -1,6 +1,6 @@
-include "../node_modules/circomlib/circuits/poseidon.circom";
+include "../../node_modules/circomlib/circuits/poseidon.circom";
 
-template SimpleHasher(SIZE) {
+template PoseidonHash(SIZE) {
     signal input in[SIZE];
     signal input hash;
 
@@ -12,4 +12,4 @@ template SimpleHasher(SIZE) {
     hasher.out === hash;
 }
 
-component main = SimpleHasher(1);
+component main = PoseidonHash(1);

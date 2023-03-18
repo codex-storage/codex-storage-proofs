@@ -13,7 +13,7 @@ function roundUpDiv(x, n) {
     return div;
 }
 
-template parallel PoseidonHasher(BLOCK_SIZE, CHUNK_SIZE) {
+template parallel PoseidonDigest(BLOCK_SIZE, CHUNK_SIZE) {
     // BLOCK_SIZE - size of the input block array
     // CHUNK_SIZE - number of elements to hash at once
     signal input block[BLOCK_SIZE]; // Input block array
