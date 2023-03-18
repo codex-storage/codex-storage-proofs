@@ -5,8 +5,11 @@ template SimpleHasher(SIZE) {
     signal input hash;
 
     component hasher = Poseidon(SIZE);
-    hasher.inputs[0] <== in;
+    for(var i = 0; i < SIZE; i++) {
+        hasher.inputs[i] <== in[i];
+    }
+
     hasher.out === hash;
 }
 
-component main = SimpleHasher(2);
+component main = SimpleHasher(1);

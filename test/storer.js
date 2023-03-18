@@ -134,4 +134,8 @@ describe("Storer test", function () {
       /Error: Error: Assert Failed.\nError in template StorageProver_7 line: 75/);
 
   }).timeout(100000);
+
+  // it("Should should hash item", async () => {
+  //   console.log(poseidon([0, 0, 0]).toString(16));
+  // });
 });
