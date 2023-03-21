@@ -21,18 +21,11 @@ ark-groth16 = { version = "0.3.0", features = ["parallel"] }
 ark-std = { version = "0.3.0", default-features = false, features = [
   "parallel",
 ] }
-# ark-serialize = { version = "0.3.0", default-features = false }
-
+ark-serialize = { version = "0.3.0", default-features = false }
 num-bigint = { version = "0.4", default-features = false, features = ["rand"] }
 ark-circom = { git = "https://github.com/gakonst/ark-circom.git", rev = "35ce5a9", features = [
   "circom-2",
 ] }
-# arkworks-native-gadgets = "1.2.0"
-# arkworks-utils = { version = "1.0.1", features = [
-#   "parallel",
-#   "poseidon_bn254_x5_3",
-#   "poseidon_bn254_x5_5",
-# ] }
 ark-ff = { version = "0.3.0", features = ["std"] }
 ruint = { version = "1.7.0", features = ["serde", "num-bigint", "ark-ff"] }
 once_cell = "1.17.1"
