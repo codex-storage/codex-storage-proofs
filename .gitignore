@@ -15,6 +15,4 @@ node_modules/
 test/circuits/artifacts
 out.log
 src/circuit_tests/artifacts/*
-!src/circuit_tests/artifacts/
 !src/circuit_tests/artifacts/.keep
-
