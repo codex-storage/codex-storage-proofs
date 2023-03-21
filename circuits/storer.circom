@@ -3,6 +3,7 @@ pragma circom 2.1.0;
 include "../node_modules/circomlib/circuits/poseidon.circom";
 include "../node_modules/circomlib/circuits/switcher.circom";
 include "../node_modules/circomlib/circuits/bitify.circom";
+
 include "./poseidon-digest.circom";
 
 template parallel MerkleProof(LEVELS) {
