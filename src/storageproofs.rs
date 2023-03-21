@@ -1,5 +1,7 @@
+use std::fs::File;
+
 use ark_bn254::{Bn254, Fr};
-use ark_circom::{CircomBuilder, CircomConfig};
+use ark_circom::{read_zkey, CircomBuilder, CircomConfig};
 use ark_groth16::{
     create_random_proof as prove, generate_random_parameters, prepare_verifying_key, verify_proof,
     Proof, ProvingKey,
@@ -10,19 +12,29 @@ use ruint::aliases::U256;
 
 #[derive(Debug, Clone)]
 #[repr(C)]
-pub struct StorageProofs {
+pub struct StorageProofs<'a> {
     builder: CircomBuilder<Bn254>,
-    pvk: ProvingKey<Bn254>,
-    rng: ThreadRng,
+    params: ProvingKey<Bn254>,
+    rng: &'a ThreadRng,
 }
 
-impl StorageProofs {
-    pub fn new(wtns: String, r1cs: String) -> Self {
-        let mut rng = ThreadRng::default();
+impl StorageProofs<'_> {
+    pub fn new(wtns: String, r1cs: String, zkey: Option<String>, rng: Option<&ThreadRng>) -> Self {
+        let mut rng = rng.unwrap_or(&ThreadRng::default());
         let builder = CircomBuilder::new(CircomConfig::<Bn254>::new(wtns, r1cs).unwrap());
-        let pvk = generate_random_parameters::<Bn254, _, _>(builder.setup(), &mut rng).unwrap();
+        let params: ProvingKey<Bn254> = match zkey {
+            Some(zkey) => {
+                let mut file = File::open(zkey).unwrap();
+                read_zkey(&mut file).unwrap().0
+            }
+            None => generate_random_parameters::<Bn254, _, _>(builder.setup(), &mut *rng).unwrap(),
+        };
 
-        Self { builder, pvk, rng }
+        Self {
+            builder,
+            params,
+            rng,
+        }
     }
 
     pub fn prove(
@@ -61,7 +73,7 @@ impl StorageProofs {
         let inputs = circuit
             .get_public_inputs()
             .ok_or("Unable to get public inputs!")?;
-        let proof = prove(circuit, &self.pvk, &mut self.rng).map_err(|e| e.to_string())?;
+        let proof = prove(circuit, &self.params, &*mut self.rng).map_err(|e| e.to_string())?;
 
         proof.serialize(proof_bytes).map_err(|e| e.to_string())?;
         inputs
@@ -75,7 +87,7 @@ impl StorageProofs {
         let inputs: Vec<Fr> =
             CanonicalDeserialize::deserialize(&mut public_inputs).map_err(|e| e.to_string())?;
         let proof = Proof::<Bn254>::deserialize(proof_bytes).map_err(|e| e.to_string())?;
-        let vk = prepare_verifying_key(&self.pvk.vk);
+        let vk = prepare_verifying_key(&self.params.vk);
 
         verify_proof(&vk, &proof, &inputs.as_slice()).map_err(|e| e.to_string())?;
 

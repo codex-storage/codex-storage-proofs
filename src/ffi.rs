@@ -1,3 +1,5 @@
+use ark_std::rand::rngs::ThreadRng;
+
 use crate::storageproofs::StorageProofs;
 use std::str;
 
@@ -7,6 +9,9 @@ pub extern "C" fn init(
     r1cs_len: usize,
     wasm: *const u8,
     wasm_len: usize,
+    zkey: *const u8,
+    zkey_len: usize,
+    rng: &ThreadRng,
 ) -> *mut StorageProofs {
     let r1cs = unsafe {
         let slice = std::slice::from_raw_parts(r1cs, r1cs_len);
@@ -18,9 +23,18 @@ pub extern "C" fn init(
         str::from_utf8(slice).unwrap()
     };
 
+    let zkey = unsafe {
+        let slice = std::slice::from_raw_parts(zkey, zkey_len);
+        str::from_utf8(slice).unwrap()
+    };
+
+    let rng = unsafe { &mut rng };
+
     let storage_proofs = Box::into_raw(Box::new(StorageProofs::new(
         wasm.to_string(),
         r1cs.to_string(),
+        Some(zkey.to_string()),
+        Some(rng),
     )));
 
     return storage_proofs;

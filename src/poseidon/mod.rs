@@ -130,7 +130,7 @@ pub fn hash(inputs: &[U256]) -> U256 {
                         (0, acc.1 + m[item.0][i] * item.1)
                     })
                     .1
-            }, // reduce((acc, a, j) => F.add(acc, F.mul(M[j][i], a)), F.zero)
+            },
         )
         .collect();
 

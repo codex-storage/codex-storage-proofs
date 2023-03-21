@@ -119,7 +119,7 @@ mod test {
 
         let r1cs = "./src/circuit_tests/artifacts/storer-test.r1cs";
         let wasm = "./src/circuit_tests/artifacts/storer-test_js/storer-test.wasm";
-        let mut prover = StorageProofs::new(wasm.to_string(), r1cs.to_string());
+        let mut prover = StorageProofs::new(wasm.to_string(), r1cs.to_string(), None, None);
 
         let root = merkelize(hashes.as_slice());
         let proof_bytes = &mut Vec::new();
