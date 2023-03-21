@@ -27,6 +27,5 @@ jobs:
         key: ${{ runner.os }}-circom-${{ hashFiles('./scripts/install-circom.sh') }}
     - name: Install circom if not cached
       run: sh ./scripts/install-circom.sh
-    - run: npm ci
     - name: Run the tests
-      run: npm test
+      run: RUST_BACKTRACE=full cargo test -r
