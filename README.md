@@ -18,22 +18,24 @@ or
 at your option. These files may not be copied, modified, or distributed except according to those terms.
 
 ## Usage
-First
-```
+
+First, clone the repo and install the circom components:
+
+```sh
 git clone git@github.com:status-im/codex-storage-proofs.git
 cd codex-storage-proofs
 npm i
 cd circuits
 ```
 
-Preparing test key material (only suitable for testing)
-```
-../scripts/circuit_prep.sh storer 13
+Nex, compile circuits:
+
+```sh
+../scripts/circuit_prep.sh
 ```
 
 Running the tests:
 
-`npm test`
-```
-npm test test/merkletree.js
+```sh
+cargo test -r # run tests in release mode by default for speed
 ```
