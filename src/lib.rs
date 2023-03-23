@@ -1,4 +1,4 @@
 pub mod ffi;
 pub mod poseidon;
-pub mod storageproofs;
+pub mod storage_proofs;
 mod circuit_tests;
