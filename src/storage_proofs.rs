@@ -12,22 +12,27 @@ use ruint::aliases::U256;
 
 #[derive(Debug, Clone)]
 #[repr(C)]
-pub struct StorageProofs<'a> {
+pub struct StorageProofs {
     builder: CircomBuilder<Bn254>,
     params: ProvingKey<Bn254>,
-    rng: &'a ThreadRng,
+    rng: ThreadRng,
 }
 
-impl StorageProofs<'_> {
-    pub fn new(wtns: String, r1cs: String, zkey: Option<String>, rng: Option<&ThreadRng>) -> Self {
-        let mut rng = rng.unwrap_or(&ThreadRng::default());
+impl StorageProofs {
+    // TODO: add rng
+    pub fn new(
+        wtns: String,
+        r1cs: String,
+        zkey: Option<String>, /* , rng: Option<ThreadRng> */
+    ) -> Self {
+        let mut rng = ThreadRng::default();
         let builder = CircomBuilder::new(CircomConfig::<Bn254>::new(wtns, r1cs).unwrap());
         let params: ProvingKey<Bn254> = match zkey {
             Some(zkey) => {
                 let mut file = File::open(zkey).unwrap();
                 read_zkey(&mut file).unwrap().0
             }
-            None => generate_random_parameters::<Bn254, _, _>(builder.setup(), &mut *rng).unwrap(),
+            None => generate_random_parameters::<Bn254, _, _>(builder.setup(), &mut rng).unwrap(),
         };
 
         Self {
@@ -39,10 +44,10 @@ impl StorageProofs<'_> {
 
     pub fn prove(
         &mut self,
-        chunks: Vec<Vec<U256>>,
-        siblings: Vec<Vec<U256>>,
-        hashes: Vec<U256>,
-        path: Vec<u32>,
+        chunks: &[U256],
+        siblings: &[U256],
+        hashes: &[U256],
+        path: &[i32],
         root: U256,
         salt: U256,
         proof_bytes: &mut Vec<u8>,
@@ -51,29 +56,23 @@ impl StorageProofs<'_> {
         let mut builder = self.builder.clone();
 
         // vec of vecs is flattened, since wasm expects a contiguous array in memory
-        chunks
-            .iter()
-            .flat_map(|c| c.into_iter())
-            .for_each(|c| builder.push_input("chunks", *c));
+        chunks.iter().for_each(|c| builder.push_input("chunks", *c));
 
         siblings
             .iter()
-            .flat_map(|c| c.into_iter())
             .for_each(|c| builder.push_input("siblings", *c));
 
         hashes.iter().for_each(|c| builder.push_input("hashes", *c));
-
         path.iter().for_each(|c| builder.push_input("path", *c));
 
         builder.push_input("root", root);
-
         builder.push_input("salt", salt);
 
         let circuit = builder.build().map_err(|e| e.to_string())?;
         let inputs = circuit
             .get_public_inputs()
             .ok_or("Unable to get public inputs!")?;
-        let proof = prove(circuit, &self.params, &*mut self.rng).map_err(|e| e.to_string())?;
+        let proof = prove(circuit, &self.params, &mut self.rng).map_err(|e| e.to_string())?;
 
         proof.serialize(proof_bytes).map_err(|e| e.to_string())?;
         inputs
@@ -83,7 +82,11 @@ impl StorageProofs<'_> {
         Ok(())
     }
 
-    pub fn verify<R: Read>(self, proof_bytes: R, mut public_inputs: R) -> Result<(), String> {
+    pub fn verify<RR: Read>(
+        &mut self,
+        proof_bytes: RR,
+        mut public_inputs: RR,
+    ) -> Result<(), String> {
         let inputs: Vec<Fr> =
             CanonicalDeserialize::deserialize(&mut public_inputs).map_err(|e| e.to_string())?;
         let proof = Proof::<Bn254>::deserialize(proof_bytes).map_err(|e| e.to_string())?;
