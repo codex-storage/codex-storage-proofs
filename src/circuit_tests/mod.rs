@@ -1,4 +1,4 @@
-mod utils;
+pub mod utils;
 
 use ark_bn254::Bn254;
 use ark_circom::{CircomBuilder, CircomConfig};
@@ -66,7 +66,7 @@ mod test {
     use super::CircuitsTests;
     use crate::{
         circuit_tests::utils::digest, circuit_tests::utils::merkelize, poseidon::hash,
-        storageproofs::StorageProofs,
+        storage_proofs::StorageProofs,
     };
     use ruint::aliases::U256;
 
@@ -102,24 +102,27 @@ mod test {
             })
             .collect::<Vec<(Vec<U256>, U256)>>();
 
-        let chunks: Vec<Vec<U256>> = data.iter().map(|c| c.0.to_vec()).collect();
+        let chunks: Vec<U256> = data.iter().flat_map(|c| c.0.to_vec()).collect();
         let hashes: Vec<U256> = data.iter().map(|c| c.1).collect();
         let path = [0, 1, 2, 3].to_vec();
 
         let parent_hash_l = hash(&[hashes[0], hashes[1]]);
         let parent_hash_r = hash(&[hashes[2], hashes[3]]);
 
-        let siblings = [
-            [hashes[1], parent_hash_r].to_vec(),
-            [hashes[1], parent_hash_r].to_vec(),
-            [hashes[3], parent_hash_l].to_vec(),
-            [hashes[2], parent_hash_l].to_vec(),
-        ]
-        .to_vec();
+        let siblings = &[
+            hashes[1],
+            parent_hash_r,
+            hashes[1],
+            parent_hash_r,
+            hashes[3],
+            parent_hash_l,
+            hashes[2],
+            parent_hash_l,
+        ];
 
         let r1cs = "./src/circuit_tests/artifacts/storer-test.r1cs";
         let wasm = "./src/circuit_tests/artifacts/storer-test_js/storer-test.wasm";
-        let mut prover = StorageProofs::new(wasm.to_string(), r1cs.to_string(), None, None);
+        let mut prover = StorageProofs::new(wasm.to_string(), r1cs.to_string(), None);
 
         let root = merkelize(hashes.as_slice());
         let proof_bytes = &mut Vec::new();
@@ -127,10 +130,10 @@ mod test {
 
         prover
             .prove(
-                chunks,
+                chunks.as_slice(),
                 siblings,
-                hashes,
-                path,
+                hashes.as_slice(),
+                path.as_slice(),
                 root,
                 root, // random salt - block hash
                 proof_bytes,
