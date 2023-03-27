@@ -6,16 +6,14 @@ pub fn digest(input: &[U256], chunk_size: Option<usize>) -> U256 {
     let chunks = ((input.len() as f32) / (chunk_size as f32)).ceil() as usize;
     let mut concat: Vec<U256> = vec![];
 
-    let mut i: usize = 0;
-    while i < chunks {
+    for i in 0..chunks {
         let range = (i * chunk_size)..std::cmp::min((i + 1) * chunk_size, input.len());
-        let mut chunk: Vec<U256> = input[range].to_vec();
+        let mut chunk = input[range].to_vec();
         if chunk.len() < chunk_size {
             chunk.resize(chunk_size as usize, uint!(0_U256));
         }
 
         concat.push(hash(chunk.as_slice()));
-        i += chunk_size;
     }
 
     if concat.len() > 1 {

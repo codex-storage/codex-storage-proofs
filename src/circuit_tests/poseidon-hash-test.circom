@@ -12,4 +12,4 @@ template PoseidonHash(SIZE) {
     hasher.out === hash;
 }
 
-component main = PoseidonHash(1);
+component main { public [hash] } = PoseidonHash(1);
