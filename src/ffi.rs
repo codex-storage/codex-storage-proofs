@@ -65,9 +65,7 @@ pub extern "C" fn init(
         }
     };
 
-    let storage_proofs = Box::into_raw(Box::new(StorageProofs::new(wasm, r1cs, zkey)));
-
-    return storage_proofs;
+    Box::into_raw(Box::new(StorageProofs::new(wasm, r1cs, zkey)))
 }
 
 #[no_mangle]
@@ -164,9 +162,7 @@ pub extern "C" fn free_prover(prover: *mut StorageProofs) {
         return;
     }
 
-    unsafe {
-        Box::from_raw(prover);
-    }
+    unsafe { drop(Box::from_raw(prover)) }
 }
 
 pub extern "C" fn free_proof_ctx(ctx: *mut ProofCtx) {
@@ -174,9 +170,7 @@ pub extern "C" fn free_proof_ctx(ctx: *mut ProofCtx) {
         return;
     }
 
-    unsafe {
-        Box::from_raw(ctx);
-    }
+    unsafe { drop(Box::from_raw(ctx)) }
 }
 
 #[cfg(test)]
@@ -196,7 +190,7 @@ mod tests {
         // and hash is the hash of each vector generated using the digest function
         let data = (0..4)
             .map(|_| {
-                let preimages: Vec<U256> = (0..256).map(|_| U256::from(1)).collect();
+                let preimages: Vec<U256> = (0..4).map(|_| U256::from(1)).collect();
                 let hash = digest(&preimages, Some(16));
                 (preimages, hash)
             })
@@ -256,7 +250,7 @@ mod tests {
         let root_bytes: [u8; U256::BYTES] = root.to_le_bytes();
         let root_buff = Buffer {
             data: root_bytes.as_ptr() as *const u8,
-            len: U256::BYTES,
+            len: root_bytes.len(),
         };
 
         let r1cs_path = "src/circuit_tests/artifacts/storer-test.r1cs";
@@ -273,7 +267,7 @@ mod tests {
         };
 
         let prover_ptr = init(&r1cs, &wasm, std::ptr::null());
-        prove(
+        let prove_ctx = prove(
             prover_ptr,
             &chunks_buff as *const Buffer,
             &siblings_buff as *const Buffer,
@@ -284,5 +278,7 @@ mod tests {
             &root_buff as *const Buffer, // pubkey
             &root_buff as *const Buffer, // salt/block hash
         );
+
+        assert!(prove_ctx.is_null() == false);
     }
 }
