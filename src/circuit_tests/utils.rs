@@ -37,8 +37,7 @@ pub fn merkelize(leafs: &[U256]) -> U256 {
         }
 
         if merkle.len() % 2 == 1 {
-            new_merkle
-                .push(hash(&[merkle[merkle.len() - 2], merkle[merkle.len() - 2]]));
+            new_merkle.push(hash(&[merkle[merkle.len() - 2], merkle[merkle.len() - 2]]));
         }
 
         merkle = new_merkle;
