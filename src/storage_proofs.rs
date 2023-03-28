@@ -92,7 +92,7 @@ impl StorageProofs {
         let proof = Proof::<Bn254>::deserialize(proof_bytes).map_err(|e| e.to_string())?;
         let vk = prepare_verifying_key(&self.params.vk);
 
-        verify_proof(&vk, &proof, &inputs.as_slice()).map_err(|e| e.to_string())?;
+        verify_proof(&vk, &proof, inputs.as_slice()).map_err(|e| e.to_string())?;
 
         Ok(())
     }

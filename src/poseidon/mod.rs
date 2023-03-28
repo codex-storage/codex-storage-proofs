@@ -16,7 +16,7 @@ const N_ROUNDS_P: [i32; 16] = [
 // Panics if `input` is not a valid field element.
 #[must_use]
 pub fn hash(inputs: &[U256]) -> U256 {
-    assert!(inputs.len() > 0);
+    assert!(!inputs.is_empty());
     assert!(inputs.len() <= N_ROUNDS_P.len());
 
     let t = inputs.len() + 1;
@@ -35,7 +35,7 @@ pub fn hash(inputs: &[U256]) -> U256 {
     for r in 0..(n_rounds_f / 2 - 1) {
         state = state
             .iter()
-            .map(|a| a.pow(&[5]))
+            .map(|a| a.pow([5]))
             .enumerate()
             .map(|(i, a)| a + c[(r + 1) * t + i])
             .collect();
@@ -57,7 +57,7 @@ pub fn hash(inputs: &[U256]) -> U256 {
 
     state = state
         .iter()
-        .map(|a| a.pow(&[5]))
+        .map(|a| a.pow([5]))
         .enumerate()
         .map(|(i, a)| a + c[(n_rounds_f / 2 - 1 + 1) * t + i])
         .collect();
@@ -76,9 +76,9 @@ pub fn hash(inputs: &[U256]) -> U256 {
         })
         .collect();
 
-    for r in 0..n_rounds_p as usize {
-        state[0] = state[0].pow(&[5]);
-        state[0] = state[0] + c[(n_rounds_f / 2 + 1) * t + r];
+    for r in 0..n_rounds_p {
+        state[0] = state[0].pow([5]);
+        state[0] += c[(n_rounds_f / 2 + 1) * t + r];
 
         let s0 = state
             .iter()
@@ -94,10 +94,10 @@ pub fn hash(inputs: &[U256]) -> U256 {
         state[0] = s0;
     }
 
-    for r in 0..(n_rounds_f / 2 - 1) as usize {
+    for r in 0..(n_rounds_f / 2 - 1) {
         state = state
             .iter()
-            .map(|a| a.pow(&[5]))
+            .map(|a| a.pow([5]))
             .enumerate()
             .map(|(i, a)| a + c[(n_rounds_f / 2 + 1) * t + n_rounds_p + r * t + i])
             .collect();
@@ -117,7 +117,7 @@ pub fn hash(inputs: &[U256]) -> U256 {
             .collect();
     }
 
-    state = state.iter().map(|a| a.pow(&[5])).collect();
+    state = state.iter().map(|a| a.pow([5])).collect();
     state = state
         .iter()
         .enumerate()

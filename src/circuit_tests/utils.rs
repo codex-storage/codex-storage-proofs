@@ -10,7 +10,7 @@ pub fn digest(input: &[U256], chunk_size: Option<usize>) -> U256 {
         let range = (i * chunk_size)..std::cmp::min((i + 1) * chunk_size, input.len());
         let mut chunk = input[range].to_vec();
         if chunk.len() < chunk_size {
-            chunk.resize(chunk_size as usize, uint!(0_U256));
+            chunk.resize(chunk_size, uint!(0_U256));
         }
 
         concat.push(hash(chunk.as_slice()));
@@ -20,7 +20,7 @@ pub fn digest(input: &[U256], chunk_size: Option<usize>) -> U256 {
         return hash(concat.as_slice());
     }
 
-    return concat[0];
+    concat[0]
 }
 
 pub fn merkelize(leafs: &[U256]) -> U256 {
@@ -43,5 +43,5 @@ pub fn merkelize(leafs: &[U256]) -> U256 {
         merkle = new_merkle;
     }
 
-    return merkle[0];
+    merkle[0]
 }

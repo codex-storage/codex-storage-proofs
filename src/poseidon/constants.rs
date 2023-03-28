@@ -34,12 +34,8 @@ pub static C_CONST: Lazy<Vec<Vec<Fr>>> = Lazy::new(|| {
                 })
                 .collect::<Result<Vec<Fr>, _>>()
                 .unwrap()
-                .try_into()
-                .unwrap()
         })
         .collect::<Vec<Vec<Fr>>>()
-        .try_into()
-        .unwrap()
 });
 
 pub static S_CONST: Lazy<Vec<Vec<Fr>>> = Lazy::new(|| {
@@ -62,12 +58,8 @@ pub static S_CONST: Lazy<Vec<Vec<Fr>>> = Lazy::new(|| {
                 })
                 .collect::<Result<Vec<Fr>, _>>()
                 .unwrap()
-                .try_into()
-                .unwrap()
         })
         .collect::<Vec<Vec<Fr>>>()
-        .try_into()
-        .unwrap()
 });
 
 pub static M_CONST: Lazy<Vec<Vec<Vec<Fr>>>> = Lazy::new(|| {
@@ -94,14 +86,10 @@ pub static M_CONST: Lazy<Vec<Vec<Vec<Fr>>>> = Lazy::new(|| {
                         })
                         .collect::<Result<Vec<Fr>, _>>()
                         .unwrap()
-                        .try_into()
-                        .unwrap()
                 })
                 .collect()
         })
         .collect::<Vec<Vec<Vec<Fr>>>>()
-        .try_into()
-        .unwrap()
 });
 
 pub static P_CONST: Lazy<Vec<Vec<Vec<Fr>>>> = Lazy::new(|| {
@@ -128,12 +116,8 @@ pub static P_CONST: Lazy<Vec<Vec<Vec<Fr>>>> = Lazy::new(|| {
                         })
                         .collect::<Result<Vec<Fr>, _>>()
                         .unwrap()
-                        .try_into()
-                        .unwrap()
                 })
                 .collect()
         })
         .collect::<Vec<Vec<Vec<Fr>>>>()
-        .try_into()
-        .unwrap()
 });
