@@ -129,9 +129,6 @@ mod test {
             parent_hash_l,
         ];
 
-        println!("hashes: {:?}", hashes);
-        println!("siblings: {:?}", siblings);
-
         let root = merkelize(hashes.as_slice());
         let proof_bytes = &mut Vec::new();
         let public_inputs_bytes = &mut Vec::new();

@@ -175,6 +175,7 @@ pub extern "C" fn free_proof_ctx(ctx: *mut ProofCtx) {
 
 #[cfg(test)]
 mod tests {
+    use ark_std::rand::{rngs::ThreadRng, distributions::Alphanumeric, Rng};
     use ruint::aliases::U256;
 
     use crate::{
@@ -190,7 +191,12 @@ mod tests {
         // and hash is the hash of each vector generated using the digest function
         let data = (0..4)
             .map(|_| {
-                let preimages: Vec<U256> = (0..4).map(|_| U256::from(1)).collect();
+                let rng = ThreadRng::default();
+                let preimages: Vec<U256> = rng
+                    .sample_iter(Alphanumeric)
+                    .take(256)
+                    .map(|c| U256::from(c))
+                    .collect();
                 let hash = digest(&preimages, Some(16));
                 (preimages, hash)
             })
@@ -216,7 +222,7 @@ mod tests {
         let sibling_hashes = &[
             hashes[1],
             parent_hash_r,
-            hashes[1],
+            hashes[0],
             parent_hash_r,
             hashes[3],
             parent_hash_l,
