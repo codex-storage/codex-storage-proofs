@@ -283,8 +283,8 @@ mod tests {
             len: wasm_path.len(),
         };
 
-        let prover_ptr = init(&r1cs, &wasm, std::ptr::null());
-        let prove_ctx = prove(
+        let prover_ptr = unsafe { init(&r1cs, &wasm, std::ptr::null()) };
+        let prove_ctx = unsafe { prove(
             prover_ptr,
             &chunks_buff as *const Buffer,
             &siblings_buff as *const Buffer,
@@ -294,7 +294,7 @@ mod tests {
             &root_buff as *const Buffer, // root
             &root_buff as *const Buffer, // pubkey
             &root_buff as *const Buffer, // salt/block hash
-        );
+        ) };
 
         assert!(prove_ctx.is_null() == false);
     }
