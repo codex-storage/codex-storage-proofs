@@ -31,4 +31,4 @@ jobs:
     - name: Build circuits
       run: sh ./scripts/circuit-prep.sh
     - name: Run the tests
-      run: RUST_BACKTRACE=full cargo test -r
+      run: RUST_BACKTRACE=full cargo test
