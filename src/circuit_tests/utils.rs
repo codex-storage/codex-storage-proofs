@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use crate::poseidon::hash;
 use ruint::{aliases::U256, uint};
 
