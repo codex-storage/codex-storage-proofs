@@ -37,5 +37,5 @@ Nex, compile circuits:
 Running the tests:
 
 ```sh
-cargo test -r # run tests in release mode by default for speed
+cargo test # don't run in release more as it dissables circuit assets
 ```
