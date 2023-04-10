@@ -13,24 +13,24 @@ function roundUpDiv(x, n) {
     return div;
 }
 
-template parallel PoseidonDigest(BLOCK_SIZE, CHUNK_SIZE) {
+template parallel PoseidonDigest(BLOCK_SIZE, DIGEST_CHUNK) {
     // BLOCK_SIZE - size of the input block array
-    // CHUNK_SIZE - number of elements to hash at once
+    // DIGEST_CHUNK - number of elements to hash at once
     signal input block[BLOCK_SIZE]; // Input block array
     signal output hash; // Output hash
 
-    // Split array into chunks of size CHUNK_SIZE, usually 2
-    var NUM_CHUNKS = roundUpDiv(BLOCK_SIZE, CHUNK_SIZE);
+    // Split array into chunks of size DIGEST_CHUNK, usually 2
+    var NUM_CHUNKS = roundUpDiv(BLOCK_SIZE, DIGEST_CHUNK);
 
     // Initialize an array to store hashes of each block
     component hashes[NUM_CHUNKS];
 
     // Loop over chunks and hash them using Poseidon()
     for (var i = 0; i < NUM_CHUNKS; i++) {
-        hashes[i] = Poseidon(CHUNK_SIZE);
+        hashes[i] = Poseidon(DIGEST_CHUNK);
 
-        var start = i * CHUNK_SIZE;
-        var end = start + CHUNK_SIZE;
+        var start = i * DIGEST_CHUNK;
+        var end = start + DIGEST_CHUNK;
         for (var j = start; j < end; j++) {
             if (j >= BLOCK_SIZE) {
                 hashes[i].inputs[j - start] <== 0;

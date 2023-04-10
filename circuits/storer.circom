@@ -34,11 +34,11 @@ template parallel MerkleProof(LEVELS) {
     root <== hasher[LEVELS - 1].out;
 }
 
-template StorageProver(BLOCK_SIZE, QUERY_LEN, LEVELS, CHUNK_SIZE) {
+template StorageProver(BLOCK_SIZE, QUERY_LEN, LEVELS, DIGEST_CHUNK) {
     // BLOCK_SIZE: size of block in symbols
     // QUERY_LEN: query length, i.e. number if indices to be proven
     // LEVELS: size of Merkle Tree in the manifest
-    // CHUNK_SIZE: number of symbols to hash in one go
+    // DIGEST_CHUNK: number of symbols to hash in one go
     signal input chunks[QUERY_LEN][BLOCK_SIZE]; // chunks to be proven
     signal input siblings[QUERY_LEN][LEVELS];   // siblings hashes of chunks to be proven
     signal input path[QUERY_LEN];               // path of chunks to be proven
@@ -50,7 +50,7 @@ template StorageProver(BLOCK_SIZE, QUERY_LEN, LEVELS, CHUNK_SIZE) {
 
     component hashers[QUERY_LEN];
     for (var i = 0; i < QUERY_LEN; i++) {
-        hashers[i] = PoseidonDigest(BLOCK_SIZE, CHUNK_SIZE);
+        hashers[i] = PoseidonDigest(BLOCK_SIZE, DIGEST_CHUNK);
         hashers[i].block <== chunks[i];
         hashers[i].hash === hashes[i];
     }
