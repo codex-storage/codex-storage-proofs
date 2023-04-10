@@ -61,6 +61,8 @@ function merkelize(leafs) {
   return merkle[0];
 }
 
+// TODO: should be removed at some point, as the rust test should be sufficient, but left here for now to aid debugging
+
 describe("Storer test", function () {
   this.timeout(100000);
 
