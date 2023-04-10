@@ -7,6 +7,8 @@ const {c} = require("circom_tester");
 const chaiAsPromised = require('chai-as-promised');
 const poseidon = require("circomlibjs/src/poseidon");
 const wasm_tester = require("circom_tester").wasm;
+// const snarkjs = require("snarkjs");
+// const fs = require("fs");
 
 chai.use(chaiAsPromised);
 
@@ -62,16 +64,16 @@ function merkelize(leafs) {
 describe("Storer test", function () {
   this.timeout(100000);
 
-  const a = Array.from(crypto.randomBytes(32).values()).map((v) => BigInt(v));
-  const aHash = digest(a);
-  const b = Array.from(crypto.randomBytes(32).values()).map((v) => BigInt(v));
-  const bHash = digest(b);
-  const c = Array.from(crypto.randomBytes(32).values()).map((v) => BigInt(v));
-  const cHash = digest(c);
-  const d = Array.from(crypto.randomBytes(32).values()).map((v) => BigInt(v));
-  const dHash = digest(d);
-  const salt = Array.from(crypto.randomBytes(32).values()).map((v) => BigInt(v));
-  const saltHash = digest(salt);
+  const a = Array.from(crypto.randomBytes(256).values()).map((v) => BigInt(v));
+  const aHash = digest(a, 16);
+  const b = Array.from(crypto.randomBytes(256).values()).map((v) => BigInt(v));
+  const bHash = digest(b, 16);
+  const c = Array.from(crypto.randomBytes(256).values()).map((v) => BigInt(v));
+  const cHash = digest(c, 16);
+  const d = Array.from(crypto.randomBytes(256).values()).map((v) => BigInt(v));
+  const dHash = digest(d, 16);
+  const salt = Array.from(crypto.randomBytes(256).values()).map((v) => BigInt(v));
+  const saltHash = digest(salt, 16);
 
   it("Should merkelize", async () => {
     let root = merkelize([aHash, bHash]);
@@ -81,7 +83,7 @@ describe("Storer test", function () {
   });
 
   it("Should verify chunk is correct and part of dataset", async () => {
-    const cir = await wasm_tester(path.join(__dirname, "./circuits", "storer_test.circom"));
+    const cir = await wasm_tester("src/circuit_tests/storer-test.circom");
 
     const root = merkelize([aHash, bHash, cHash, dHash]);
 
@@ -103,7 +105,7 @@ describe("Storer test", function () {
   });
 
   it("Should verify chunk is not correct and part of dataset", async () => {
-    const cir = await wasm_tester(path.join(__dirname, "./circuits", "storer_test.circom"));
+    const cir = await wasm_tester("src/circuit_tests/storer-test.circom");
 
     const root = merkelize([aHash, bHash, cHash, dHash]);
 
@@ -134,8 +136,31 @@ describe("Storer test", function () {
       /Error: Error: Assert Failed.\nError in template StorageProver_7 line: 75/);
   });
 
+  function range(start, end) {
+    return Array(end - start + 1).fill().map((_, idx) => start + idx)
+  }
 
-  it("Should should hash item", async () => {
-    console.log(digest([0, 0, 0]).toString(16));
+  it("Should test poseidon digest", async () => {
+    const cir = await wasm_tester("src/circuit_tests/poseidon-digest-test.circom");
+    let input = range(0, 255).map((c) => BigInt(c));
+    await cir.calculateWitness({
+      "block": input,
+      "hash": digest(input, 16),
+    });
   });
+
+  // it("Should prove digest with zkey file", async () => {
+  //   let input = range(0, 255).map((c) => BigInt(c));
+  //   const {proof, publicSignals} = await snarkjs.groth16.fullProve(
+  //     {
+  //       "block": input,
+  //       "hash": digest(input, 16),
+  //     },
+  //     "src/circuit_tests/artifacts/poseidon-digest-test_js/poseidon-digest-test.wasm",
+  //     "circuit_0000.zkey");
+
+  //   const vKey = JSON.parse(fs.readFileSync("verification_key.json"));
+  //   const res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+  //   assert(res);
+  // });
 });
