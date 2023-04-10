@@ -196,7 +196,7 @@ mod tests {
     use super::{init, prove, Buffer};
 
     #[test]
-    fn should_prove() {
+    fn test_storer_ffi() {
         // generate a tuple of (preimages, hash), where preimages is a vector of 256 U256s
         // and hash is the hash of each vector generated using the digest function
         let data = (0..4)
@@ -218,14 +218,15 @@ mod tests {
                 c.0.iter()
                     .map(|c| c.to_le_bytes_vec())
                     .flatten()
-                    // .cloned()
                     .collect::<Vec<u8>>()
             })
             .flatten()
             .collect();
-        let hashes: Vec<U256> = data.iter().map(|c| c.1).collect();
-        let path = [0, 1, 2, 3];
 
+        let hashes: Vec<U256> = data.iter().map(|c| c.1).collect();
+        let hashes_slice: Vec<u8> = hashes.iter().map(|c| c.to_le_bytes_vec()).flatten().collect();
+
+        let path = [0, 1, 2, 3];
         let parent_hash_l = hash(&[hashes[0], hashes[1]]);
         let parent_hash_r = hash(&[hashes[2], hashes[3]]);
 
@@ -244,7 +245,6 @@ mod tests {
             .iter()
             .map(|c| c.to_le_bytes_vec())
             .flatten()
-            // .cloned()
             .collect();
 
         let root = merkelize(hashes.as_slice());
@@ -259,8 +259,8 @@ mod tests {
         };
 
         let hashes_buff = Buffer {
-            data: hashes.as_ptr() as *const u8,
-            len: hashes.len(),
+            data: hashes_slice.as_ptr() as *const u8,
+            len: hashes_slice.len(),
         };
 
         let root_bytes: [u8; U256::BYTES] = root.to_le_bytes();
@@ -283,17 +283,19 @@ mod tests {
         };
 
         let prover_ptr = unsafe { init(&r1cs, &wasm, std::ptr::null()) };
-        let prove_ctx = unsafe { prove(
-            prover_ptr,
-            &chunks_buff as *const Buffer,
-            &siblings_buff as *const Buffer,
-            &hashes_buff as *const Buffer,
-            &path as *const i32,
-            path.len(),
-            &root_buff as *const Buffer, // root
-            &root_buff as *const Buffer, // pubkey
-            &root_buff as *const Buffer, // salt/block hash
-        ) };
+        let prove_ctx = unsafe {
+            prove(
+                prover_ptr,
+                &chunks_buff as *const Buffer,
+                &siblings_buff as *const Buffer,
+                &hashes_buff as *const Buffer,
+                &path as *const i32,
+                path.len(),
+                &root_buff as *const Buffer, // root
+                &root_buff as *const Buffer, // pubkey
+                &root_buff as *const Buffer, // salt/block hash
+            )
+        };
 
         assert!(prove_ctx.is_null() == false);
     }
