@@ -11,7 +11,6 @@ use ark_std::rand::rngs::ThreadRng;
 use ruint::aliases::U256;
 
 #[derive(Debug, Clone)]
-#[repr(C)]
 pub struct StorageProofs {
     builder: CircomBuilder<Bn254>,
     params: ProvingKey<Bn254>,

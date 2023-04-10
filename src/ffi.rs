@@ -6,15 +6,15 @@ use std::str;
 #[derive(Debug, Clone)]
 #[repr(C)]
 pub struct Buffer {
-    data: *const u8,
-    len: usize,
+    pub data: *const u8,
+    pub len: usize,
 }
 
 #[derive(Debug, Clone)]
 #[repr(C)]
 pub struct ProofCtx {
-    proof: Buffer,
-    public_inputs: Buffer,
+    pub proof: Buffer,
+    pub public_inputs: Buffer,
 }
 
 impl ProofCtx {
@@ -71,10 +71,9 @@ pub unsafe extern "C" fn init(
     Box::into_raw(Box::new(StorageProofs::new(wasm, r1cs, zkey)))
 }
 
-
 /// # Safety
 ///
-/// Use after constructing a StorageProofs object
+/// Use after constructing a StorageProofs object with init
 #[no_mangle]
 pub unsafe extern "C" fn prove(
     prover_ptr: *mut StorageProofs,
