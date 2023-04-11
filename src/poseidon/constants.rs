@@ -5,13 +5,10 @@ use num_bigint::BigUint;
 use once_cell::sync::Lazy;
 use num_traits::Num;
 
+const CONSTANTS_STR: &str = include_str!("poseidon_constants_opt.json");
+
 pub static CONSTANTS: Lazy<serde_json::Value> = Lazy::new(|| {
-    let file = File::open(
-        "./src/poseidon/poseidon_constants_opt.json",
-    )
-    .unwrap();
-    // Read the JSON contents of the file as an instance of `User`.
-    serde_json::from_reader(BufReader::new(file)).unwrap()
+    serde_json::from_str(CONSTANTS_STR).unwrap()
 });
 
 pub static C_CONST: Lazy<Vec<Vec<Fr>>> = Lazy::new(|| {
