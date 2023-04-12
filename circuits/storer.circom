@@ -4,6 +4,8 @@ include "../node_modules/circomlib/circuits/poseidon.circom";
 include "../node_modules/circomlib/circuits/switcher.circom";
 include "../node_modules/circomlib/circuits/bitify.circom";
 
+include "./poseidon-digest.circom";
+
 template parallel MerkleProof(LEVELS) {
     signal input leaf;
     signal input pathElements[LEVELS];
@@ -32,50 +34,11 @@ template parallel MerkleProof(LEVELS) {
     root <== hasher[LEVELS - 1].out;
 }
 
-function min(arg1, arg2) {
-    return arg1 < arg2 ? arg1 : arg2;
-}
-
-template parallel HashCheck(BLOCK_SIZE) {
-    signal input block[BLOCK_SIZE];
-    signal input blockHash;
-
-    // TODO: make CHUNK_SIZE a parameter
-    // Split array into chunks of size 16
-    var CHUNK_SIZE = 16;
-    var NUM_CHUNKS = BLOCK_SIZE / CHUNK_SIZE;
-
-    // Initialize an array to store hashes of each block
-    component hashes[NUM_CHUNKS];
-
-    // Loop over chunks and hash them using Poseidon()
-    for (var i = 0; i < NUM_CHUNKS; i++) {
-        var start = i * CHUNK_SIZE;
-        var end = min(start + CHUNK_SIZE, BLOCK_SIZE);
-        hashes[i] = Poseidon(CHUNK_SIZE);
-        for (var j = start; j < end; j++) {
-            hashes[i].inputs[j - start] <== block[j];
-        }
-    }
-
-    // Concatenate hashes into a single block
-    var concat[NUM_CHUNKS];
-    for (var i = 0; i < NUM_CHUNKS; i++) {
-        concat[i] = hashes[i].out;
-    }
-
-    // Hash concatenated array using Poseidon() again
-    component h = Poseidon(NUM_CHUNKS);
-    h.inputs <== concat;
-
-    // Assign output to hash signal
-    h.out === blockHash;
-}
-
-template StorageProver(BLOCK_SIZE, QUERY_LEN, LEVELS) {
+template StorageProver(BLOCK_SIZE, QUERY_LEN, LEVELS, DIGEST_CHUNK) {
     // BLOCK_SIZE: size of block in symbols
     // QUERY_LEN: query length, i.e. number if indices to be proven
     // LEVELS: size of Merkle Tree in the manifest
+    // DIGEST_CHUNK: number of symbols to hash in one go
     signal input chunks[QUERY_LEN][BLOCK_SIZE]; // chunks to be proven
     signal input siblings[QUERY_LEN][LEVELS];   // siblings hashes of chunks to be proven
     signal input path[QUERY_LEN];               // path of chunks to be proven
@@ -87,9 +50,9 @@ template StorageProver(BLOCK_SIZE, QUERY_LEN, LEVELS) {
 
     component hashers[QUERY_LEN];
     for (var i = 0; i < QUERY_LEN; i++) {
-        hashers[i] = HashCheck(BLOCK_SIZE);
+        hashers[i] = PoseidonDigest(BLOCK_SIZE, DIGEST_CHUNK);
         hashers[i].block <== chunks[i];
-        hashers[i].blockHash <== hashes[i];
+        hashers[i].hash === hashes[i];
     }
 
     component merkelizer[QUERY_LEN];

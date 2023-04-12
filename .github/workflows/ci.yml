@@ -28,5 +28,7 @@ jobs:
     - name: Install circom if not cached
       run: sh ./scripts/install-circom.sh
     - run: npm ci
+    - name: Build circuits
+      run: sh ./scripts/circuit-prep.sh
     - name: Run the tests
-      run: npm test
+      run: RUST_BACKTRACE=full cargo test
