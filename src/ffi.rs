@@ -186,11 +186,11 @@ pub unsafe extern "C" fn free_proof_ctx(ctx: *mut ProofCtx) {
 #[cfg(test)]
 mod tests {
     use ark_std::rand::{distributions::Alphanumeric, rngs::ThreadRng, Rng};
+    use rs_poseidon::poseidon::hash;
     use ruint::aliases::U256;
 
     use crate::{
-        circuit_tests::utils::{digest, merkelize},
-        poseidon::hash,
+        circuit_tests::utils::{digest, treehash},
     };
 
     use super::{init, prove, Buffer};
@@ -247,7 +247,7 @@ mod tests {
             .flatten()
             .collect();
 
-        let root = merkelize(hashes.as_slice());
+        let root = treehash(hashes.as_slice());
         let chunks_buff = Buffer {
             data: chunks.as_ptr() as *const u8,
             len: chunks.len(),

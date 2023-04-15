@@ -9,11 +9,11 @@ mod test {
         prepare_verifying_key, verify_proof_with_prepared_inputs, ProvingKey,
     };
     use ark_std::rand::{distributions::Alphanumeric, rngs::ThreadRng, Rng};
+    use rs_poseidon::poseidon::hash;
     use ruint::aliases::U256;
 
     use crate::{
-        circuit_tests::utils::{digest, merkelize},
-        poseidon::hash,
+        circuit_tests::utils::{digest, treehash},
         storage_proofs::StorageProofs,
     };
 
@@ -129,7 +129,7 @@ mod test {
             parent_hash_l,
         ];
 
-        let root = merkelize(hashes.as_slice());
+        let root = treehash(hashes.as_slice());
         let proof_bytes = &mut Vec::new();
         let public_inputs_bytes = &mut Vec::new();
 
