@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::poseidon::hash;
+use rs_poseidon::poseidon::hash;
 use ruint::{aliases::U256, uint};
 
 pub fn digest(input: &[U256], chunk_size: Option<usize>) -> U256 {
@@ -25,7 +25,7 @@ pub fn digest(input: &[U256], chunk_size: Option<usize>) -> U256 {
     concat[0]
 }
 
-pub fn merkelize(leafs: &[U256]) -> U256 {
+pub fn treehash(leafs: &[U256]) -> U256 {
     // simple merkle root (treehash) generator
     // unbalanced trees will have the last leaf duplicated
     let mut merkle: Vec<U256> = leafs.to_vec();
