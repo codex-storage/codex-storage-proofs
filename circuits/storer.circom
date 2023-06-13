@@ -1,10 +1,10 @@
 pragma circom 2.1.0;
 
-// include "../node_modules/circomlib/circuits/poseidon.circom";
-include "../node_modules/circomlib/circuits/mimc.circom";
-// include "../node_modules/circomlib/circuits/mimcsponge.circom";
+include "../node_modules/circomlib/circuits/poseidon.circom";
 include "../node_modules/circomlib/circuits/switcher.circom";
 include "../node_modules/circomlib/circuits/bitify.circom";
+
+include "./poseidon-digest.circom";
 
 template parallel MerkleProof(LEVELS) {
     signal input leaf;
@@ -26,31 +26,19 @@ template parallel MerkleProof(LEVELS) {
         switcher[i].R <== pathElements[i];
         switcher[i].sel <== indexBits.out[i];
 
-        // hasher[i] = Poseidon(2);
-        hasher[i] = MultiMiMC7(2, 91);
-        hasher[i].k <== 2;
-        hasher[i].in[0] <== switcher[i].outL;
-        hasher[i].in[1] <== switcher[i].outR;
+        hasher[i] = Poseidon(2);
+        hasher[i].inputs[0] <== switcher[i].outL;
+        hasher[i].inputs[1] <== switcher[i].outR;
     }
 
     root <== hasher[LEVELS - 1].out;
 }
 
-template parallel HashCheck(BLOCK_SIZE) {
-    signal input block[BLOCK_SIZE];
-    signal input blockHash;
-
-    component hash = MultiMiMC7(BLOCK_SIZE, 91);
-    hash.in <== block;
-    hash.k <== 2;
-
-    blockHash === hash.out; // assert that block matches hash
-}
-
-template StorageProver(BLOCK_SIZE, QUERY_LEN, LEVELS) {
+template StorageProver(BLOCK_SIZE, QUERY_LEN, LEVELS, DIGEST_CHUNK) {
     // BLOCK_SIZE: size of block in symbols
     // QUERY_LEN: query length, i.e. number if indices to be proven
     // LEVELS: size of Merkle Tree in the manifest
+    // DIGEST_CHUNK: number of symbols to hash in one go
     signal input chunks[QUERY_LEN][BLOCK_SIZE]; // chunks to be proven
     signal input siblings[QUERY_LEN][LEVELS];   // siblings hashes of chunks to be proven
     signal input path[QUERY_LEN];               // path of chunks to be proven
@@ -62,9 +50,9 @@ template StorageProver(BLOCK_SIZE, QUERY_LEN, LEVELS) {
 
     component hashers[QUERY_LEN];
     for (var i = 0; i < QUERY_LEN; i++) {
-        hashers[i] = HashCheck(BLOCK_SIZE);
+        hashers[i] = PoseidonDigest(BLOCK_SIZE, DIGEST_CHUNK);
         hashers[i].block <== chunks[i];
-        hashers[i].blockHash <== hashes[i];
+        hashers[i].hash === hashes[i];
     }
 
     component merkelizer[QUERY_LEN];

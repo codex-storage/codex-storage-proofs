@@ -5,6 +5,29 @@
 
 WIP Zero Knowledge tooling for the Codex project
 
+## Usage
+
+First, clone the repo and install the circom components:
+
+```sh
+git clone git@github.com:status-im/codex-storage-proofs.git
+cd codex-storage-proofs
+npm i
+cd circuits
+```
+
+Nex, compile circuits:
+
+```sh
+../scripts/circuit_prep.sh
+```
+
+Running the tests:
+
+```sh
+cargo test # don't run in release more as it dissables circuit assets
+```
+
 ## License
 
 Licensed and distributed under either of
@@ -16,15 +39,3 @@ or
 * Apache License, Version 2.0, ([LICENSE-APACHEv2](LICENSE-APACHEv2) or http://www.apache.org/licenses/LICENSE-2.0)
 
 at your option. These files may not be copied, modified, or distributed except according to those terms.
-
-## Usage
-
-Preparing test key material (only suitable for testing)
-```
-../scripts/circuit_prep.sh storer 13
-```
-
-Running part of the code
-```
-npm test test/merkletree.js
-```

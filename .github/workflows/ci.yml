@@ -1,0 +1,34 @@
+# This workflow runs the tests for the circuits.
+name: Test
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 18
+        cache: 'npm'
+    - name: Cache circom
+      id: cache-circom
+      uses: actions/cache@v3
+      with:
+        path: ~/.cargo/bin/circom
+        # Since the version of circom is specified in `scripts/install-circom.sh`,
+        # as long as the file doesn't change we can reuse the circom binary.
+        key: ${{ runner.os }}-circom-${{ hashFiles('./scripts/install-circom.sh') }}
+    - name: Install circom if not cached
+      run: sh ./scripts/install-circom.sh
+    - run: npm ci
+    - name: Build circuits
+      run: sh ./scripts/circuit-prep.sh
+    - name: Run the tests
+      run: RUST_BACKTRACE=full cargo test

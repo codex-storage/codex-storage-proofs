@@ -1,1 +1,18 @@
 node_modules/
+
+# Added by cargo
+
+/target
+
+
+# Added by cargo
+#
+# already existing elements were commented out
+
+#/target
+/Cargo.lock
+.vscode
+test/circuits/artifacts
+out.log
+src/circuit_tests/artifacts/*
+!src/circuit_tests/artifacts/.keep
