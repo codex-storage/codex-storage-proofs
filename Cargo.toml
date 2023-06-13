@@ -36,14 +36,7 @@ serde = "1.0.156"
 serde_json = "1.0.94"
 num-traits = "0.2.15"
 ark-relations = { version = "0.4.0", features = ["std", "tracing-subscriber"] }
-<<<<<<< HEAD
-<<<<<<< HEAD
 rs-poseidon = {git = "https://github.com/status-im/rs-poseidon" }
 
 [dev-dependencies]
 criterion = "0.3"
-=======
->>>>>>> ebef300 (Ark circom and rust ffi (#5))
-=======
-rs-poseidon = {git = "https://github.com/status-im/rs-poseidon" }
->>>>>>> f8e4b3e (extract poseidon to it's own package (#8))
