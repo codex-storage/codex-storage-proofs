@@ -13,13 +13,12 @@ First, clone the repo and install the circom components:
 git clone git@github.com:status-im/codex-storage-proofs.git
 cd codex-storage-proofs
 npm i
-cd circuits
 ```
 
 Nex, compile circuits:
 
 ```sh
-../scripts/circuit_prep.sh
+./scripts/circuit-prep.sh
 ```
 
 Running the tests:
