@@ -227,9 +227,10 @@ mod tests {
             })
             .collect::<Vec<Value>>();
         let chunks = Value::Array(chunks);
+        let mut data = Value::Map(vec![(Value::String("chunks".into()), chunks.clone() )]);
 
         println!("Debug: chunks: {:?}", chunks[0][0]);
-        println!("Debug: chunks: {:?}", chunks[0]);
+        println!("Debug: data: {:?}", data);
 
         write_value_ref(&mut buf, &val).unwrap();
         // assert_eq!(vec![0xaa, 0x6c, 0x65, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65], buf);
