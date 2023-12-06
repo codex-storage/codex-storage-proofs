@@ -115,7 +115,7 @@ pub unsafe extern "C" fn prove(
         slice.to_vec()
     };
 
-    let pubkey =
+    let _pubkey =
         U256::try_from_le_slice(std::slice::from_raw_parts((*pubkey).data, (*pubkey).len)).unwrap();
 
     let root =
@@ -194,6 +194,23 @@ mod tests {
     };
 
     use super::{init, prove, Buffer};
+
+    use rmpv::ValueRef;
+    use rmpv::encode::write_value_ref;
+    use rmpv::decode::read_value_ref;
+
+    #[test]
+    fn test_mpack() {
+        let mut buf = Vec::new();
+        let val = ValueRef::from("le message");
+
+        write_value_ref(&mut buf, &val).unwrap();
+        // assert_eq!(vec![0xaa, 0x6c, 0x65, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65], buf);
+        // let buf = [0xaa, 0x6c, 0x65, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65];
+        let mut rd = &buf[..];
+
+        assert_eq!(ValueRef::from("le message"), read_value_ref(&mut rd).unwrap());
+    }
 
     #[test]
     fn test_storer_ffi() {
