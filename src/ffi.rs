@@ -196,6 +196,7 @@ mod tests {
     use super::{init, prove, Buffer};
 
     use rmpv::ValueRef;
+    use rmpv::Value;
     use rmpv::encode::write_value_ref;
     use rmpv::decode::read_value_ref;
 
@@ -203,6 +204,30 @@ mod tests {
     fn test_mpack() {
         let mut buf = Vec::new();
         let val = ValueRef::from("le message");
+
+        let data = (0..4)
+            .map(|_| {
+                let rng = ThreadRng::default();
+                let preimages: Vec<U256> = rng
+                    .sample_iter(Alphanumeric)
+                    .take(256)
+                    .map(|c| U256::from(c))
+                    .collect();
+                let hash = digest(&preimages, Some(16));
+                (preimages, hash)
+            })
+            .collect::<Vec<(Vec<U256>, U256)>>();
+
+        let chunks = data.iter()
+            .map(|c| {
+                let x = c.0.iter()
+                    .map(|c| Value::Ext(10, c.to_le_bytes_vec()))
+                    .collect::<Vec<Value>>();
+                Value::Array(x)
+            })
+            .collect::<Vec<Value>>();
+
+        println!("Debug: chunks: {:?}", chunks[0]);
 
         write_value_ref(&mut buf, &val).unwrap();
         // assert_eq!(vec![0xaa, 0x6c, 0x65, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65], buf);
