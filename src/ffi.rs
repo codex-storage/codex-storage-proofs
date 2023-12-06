@@ -230,6 +230,7 @@ mod tests {
         let mut data = Value::Map(vec![(Value::String("chunks".into()), chunks.clone() )]);
 
         println!("Debug: chunks: {:?}", chunks[0][0]);
+        println!("Debug: data: {:?}", data["chunks"]);
         println!("Debug: data: {:?}", data);
 
         write_value_ref(&mut buf, &val).unwrap();
