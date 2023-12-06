@@ -221,12 +221,14 @@ mod tests {
         let chunks = data.iter()
             .map(|c| {
                 let x = c.0.iter()
-                    .map(|c| Value::Ext(10, c.to_le_bytes_vec()))
+                    .map(|c| Value::Ext(50, c.to_le_bytes_vec()))
                     .collect::<Vec<Value>>();
                 Value::Array(x)
             })
             .collect::<Vec<Value>>();
+        let chunks = Value::Array(chunks);
 
+        println!("Debug: chunks: {:?}", chunks[0][0]);
         println!("Debug: chunks: {:?}", chunks[0]);
 
         write_value_ref(&mut buf, &val).unwrap();
