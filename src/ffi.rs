@@ -244,20 +244,26 @@ mod tests {
         let mut arg_chunks: Vec<Vec<U256>> = Vec::new();
 
         // deserialize the data back into u256's
+        // instead of this, we'll want to use `builder.push_input`
         args["chunks"]
             .as_array()
             .unwrap()
             .iter()
             .for_each(|c| {
-                let x = c.as_array().unwrap();
-                let mut vals: Vec<U256> = Vec::new();
-                x.iter().for_each(|n| {
-                    let b = n.as_ext().unwrap();
-                    // ensure it's a LE uin256 which we've set as ext 50
-                    assert_eq!(b.0, 50);
-                    vals.push(U256::try_from_le_slice(b.1).unwrap());
-                });
-                arg_chunks.push(vals);
+                if let Some(x) = c.as_array() {
+                    let mut vals: Vec<U256> = Vec::new();
+                    x.iter().for_each(|n| {
+                        let b = n.as_ext().unwrap();
+                        // ensure it's a LE uin256 which we've set as ext 50
+                        assert_eq!(b.0, 50);
+                        vals.push(U256::try_from_le_slice(b.1).unwrap());
+                        // TODO: change to use
+                        // builder.push_input("hashes", *c)
+                    });
+                    arg_chunks.push(vals);
+                } else {
+                    panic!("unhandled type!");
+                }
             });
 
         assert_eq!(arg_chunks.len(), 4);
