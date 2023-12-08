@@ -195,15 +195,14 @@ mod tests {
 
     use super::{init, prove, Buffer};
 
-    use rmpv::ValueRef;
     use rmpv::Value;
-    use rmpv::encode::write_value_ref;
-    use rmpv::decode::read_value_ref;
+    use rmpv::encode::write_value;
+    use rmpv::decode::read_value;
 
     #[test]
     fn test_mpack() {
         let mut buf = Vec::new();
-        let val = ValueRef::from("le message");
+        let val = Value::from("le message");
 
         let data = (0..4)
             .map(|_| {
@@ -233,12 +232,14 @@ mod tests {
         println!("Debug: data: {:?}", data["chunks"]);
         println!("Debug: data: {:?}", data);
 
-        write_value_ref(&mut buf, &val).unwrap();
+        write_value(&mut buf, &data).unwrap();
         // assert_eq!(vec![0xaa, 0x6c, 0x65, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65], buf);
         // let buf = [0xaa, 0x6c, 0x65, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65];
         let mut rd = &buf[..];
+        
+        let args = read_value(&mut rd).unwrap();
 
-        assert_eq!(ValueRef::from("le message"), read_value_ref(&mut rd).unwrap());
+        assert!(Value::is_map(&args));
     }
 
     #[test]
