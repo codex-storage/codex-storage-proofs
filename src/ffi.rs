@@ -204,6 +204,8 @@ mod tests {
         let mut buf = Vec::new();
         let val = Value::from("le message");
 
+        // example of serializing the random chunk data
+        // we build them up in mpack Value enums
         let data = (0..4)
             .map(|_| {
                 let rng = ThreadRng::default();
@@ -220,7 +222,7 @@ mod tests {
         let chunks = data.iter()
             .map(|c| {
                 let x = c.0.iter()
-                    .map(|c| Value::Ext(50, c.to_le_bytes_vec()[0..3].to_vec()))
+                    .map(|c| Value::Ext(50, c.to_le_bytes_vec()))
                     .collect::<Vec<Value>>();
                 Value::Array(x)
             })
@@ -229,12 +231,9 @@ mod tests {
         let mut data = Value::Map(vec![(Value::String("chunks".into()), chunks.clone() )]);
 
         println!("Debug: chunks: {:?}", chunks[0][0]);
-        // println!("Debug: data: {:?}", data["chunks"]);
-        // println!("Debug: data: {:?}", data);
 
+        // Serialize the value types to an array pointer
         write_value(&mut buf, &data).unwrap();
-        // assert_eq!(vec![0xaa, 0x6c, 0x65, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65], buf);
-        // let buf = [0xaa, 0x6c, 0x65, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65];
         let mut rd = &buf[..];
         
         let args = read_value(&mut rd).unwrap();
@@ -242,18 +241,27 @@ mod tests {
         assert!(Value::is_map(&args));
         assert!(Value::is_array(&args["chunks"]));
         assert!(Value::is_array(&args["chunks"][0]));
-        let mut arg_chunks: Vec<Vec<Value>> = Vec::new();
+        let mut arg_chunks: Vec<Vec<U256>> = Vec::new();
 
+        // deserialize the data back into u256's
         args["chunks"]
             .as_array()
             .unwrap()
             .iter()
             .for_each(|c| {
                 let x = c.as_array().unwrap();
-                x;
-                // .map(|c| Value::Ext(50, c.to_le_bytes_vec()[0..3].to_vec()))
+                let mut vals: Vec<U256> = Vec::new();
+                x.iter().for_each(|n| {
+                    let b = n.as_ext().unwrap();
+                    // ensure it's a LE uin256 which we've set as ext 50
+                    assert_eq!(b.0, 50);
+                    vals.push(U256::try_from_le_slice(b.1).unwrap());
+                });
+                arg_chunks.push(vals);
             });
 
+        assert_eq!(arg_chunks.len(), 4);
+        assert_eq!(arg_chunks[0].len(), 256);
 
     }
 
