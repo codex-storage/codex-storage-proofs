@@ -220,7 +220,7 @@ mod tests {
         let chunks = data.iter()
             .map(|c| {
                 let x = c.0.iter()
-                    .map(|c| Value::Ext(50, c.to_le_bytes_vec()))
+                    .map(|c| Value::Ext(50, c.to_le_bytes_vec()[0..3].to_vec()))
                     .collect::<Vec<Value>>();
                 Value::Array(x)
             })
@@ -229,8 +229,8 @@ mod tests {
         let mut data = Value::Map(vec![(Value::String("chunks".into()), chunks.clone() )]);
 
         println!("Debug: chunks: {:?}", chunks[0][0]);
-        println!("Debug: data: {:?}", data["chunks"]);
-        println!("Debug: data: {:?}", data);
+        // println!("Debug: data: {:?}", data["chunks"]);
+        // println!("Debug: data: {:?}", data);
 
         write_value(&mut buf, &data).unwrap();
         // assert_eq!(vec![0xaa, 0x6c, 0x65, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65], buf);
@@ -240,6 +240,21 @@ mod tests {
         let args = read_value(&mut rd).unwrap();
 
         assert!(Value::is_map(&args));
+        assert!(Value::is_array(&args["chunks"]));
+        assert!(Value::is_array(&args["chunks"][0]));
+        let mut arg_chunks: Vec<Vec<Value>> = Vec::new();
+
+        args["chunks"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .for_each(|c| {
+                let x = c.as_array().unwrap();
+                x;
+                // .map(|c| Value::Ext(50, c.to_le_bytes_vec()[0..3].to_vec()))
+            });
+
+
     }
 
     #[test]
