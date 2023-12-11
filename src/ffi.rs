@@ -234,13 +234,14 @@ mod tests {
 
         // Serialize the value types to an array pointer
         write_value(&mut buf, &data).unwrap();
-        let mut rd = &buf[..];
+        let mut rd: &[u8] = &buf[..];
         
         let args = read_value(&mut rd).unwrap();
 
         assert!(Value::is_map(&args));
         assert!(Value::is_array(&args["chunks"]));
         assert!(Value::is_array(&args["chunks"][0]));
+
         let mut arg_chunks: Vec<Vec<U256>> = Vec::new();
 
         // deserialize the data back into u256's
