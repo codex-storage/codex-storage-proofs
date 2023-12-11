@@ -145,7 +145,8 @@ impl StorageProofs {
                 rmpv::Value::String(s) => {
                     // directly add a (name,string) arg pair 
                     // ie, "path" => "/some/file/path"
-                    builder.push_input(name, decode_u256(val)?);
+                    let s = s.clone().into_bytes();
+                    s.iter().for_each(|c| builder.push_input(name, *c));
                 }
                 rmpv::Value::Ext(_, _) => {
                     // directly add a (name,u256) arg pair 
@@ -154,21 +155,6 @@ impl StorageProofs {
                 _ => return Err("unhandled argument kind".to_string()),
             }
         }
-
-        // vec of vecs is flattened, since wasm expects a contiguous array in memory
-
-        // chunks.iter().for_each(|c| builder.push_input("chunks", *c));
-
-        // siblings
-        //     .iter()
-        //     .for_each(|c| builder.push_input("siblings", *c));
-
-        // hashes.iter().for_each(|c| builder.push_input("hashes", *c));
-
-        // path.iter().for_each(|c| builder.push_input("path", *c));
-
-        // builder.push_input("root", root);
-        // builder.push_input("salt", salt);
 
         let circuit: CircomCircuit<ark_ec::bn::Bn<ark_bn254::Parameters>> = builder.build()
             .map_err(|e| e.to_string())?;
