@@ -127,19 +127,19 @@ pub unsafe extern "C" fn prove(
     let proof_bytes = &mut Vec::new();
     let public_inputs_bytes = &mut Vec::new();
 
-    let mut _prover = &mut *prover_ptr;
-    _prover
-        .prove(
-            chunks.as_slice(),
-            siblings.as_slice(),
-            hashes.as_slice(),
-            path.as_slice(),
-            root,
-            salt,
-            proof_bytes,
-            public_inputs_bytes,
-        )
-        .unwrap();
+    // let mut _prover = &mut *prover_ptr;
+    // _prover
+    //     .prove(
+    //         chunks.as_slice(),
+    //         siblings.as_slice(),
+    //         hashes.as_slice(),
+    //         path.as_slice(),
+    //         root,
+    //         salt,
+    //         proof_bytes,
+    //         public_inputs_bytes,
+    //     )
+    //     .unwrap();
 
     Box::into_raw(Box::new(ProofCtx::new(proof_bytes, public_inputs_bytes)))
 }
@@ -215,7 +215,7 @@ mod tests {
     use ruint::aliases::U256;
 
     use crate::{
-        circuit_tests::utils::{digest, treehash},
+        circuit_tests::utils::{digest, treehash}, storage_proofs::EXT_ID_U256_LE,
     };
 
     use super::{init, prove, Buffer};
@@ -247,7 +247,7 @@ mod tests {
         let chunks = data.iter()
             .map(|c| {
                 let x = c.0.iter()
-                    .map(|c| Value::Ext(50, c.to_le_bytes_vec()))
+                    .map(|c| Value::Ext(EXT_ID_U256_LE, c.to_le_bytes_vec()))
                     .collect::<Vec<Value>>();
                 Value::Array(x)
             })
