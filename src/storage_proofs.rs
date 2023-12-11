@@ -109,9 +109,13 @@ impl StorageProofs {
         let inputs = circuit
             .get_public_inputs()
             .ok_or("Unable to get public inputs!")?;
-        let proof = prove(circuit, &self.params, &mut self.rng).map_err(|e| e.to_string())?;
+        let proof =
+            prove(circuit, &self.params, &mut self.rng)
+            .map_err(|e| e.to_string())?;
 
-        proof.serialize(proof_bytes).map_err(|e| e.to_string())?;
+        proof
+            .serialize(proof_bytes)
+            .map_err(|e| e.to_string())?;
         inputs
             .serialize(public_inputs_bytes)
             .map_err(|e| e.to_string())?;
