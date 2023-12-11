@@ -50,47 +50,7 @@ impl StorageProofs {
         }
     }
 
-    // pub fn prove(
-    //     &mut self,
-    //     chunks: &[U256],
-    //     siblings: &[U256],
-    //     hashes: &[U256],
-    //     path: &[i32],
-    //     root: U256,
-    //     salt: U256,
-    //     proof_bytes: &mut Vec<u8>,
-    //     public_inputs_bytes: &mut Vec<u8>,
-    // ) -> Result<(), String> {
-    //     let mut builder = self.builder.clone();
-
-    //     // vec of vecs is flattened, since wasm expects a contiguous array in memory
-    //     chunks.iter().for_each(|c| builder.push_input("chunks", *c));
-
-    //     siblings
-    //         .iter()
-    //         .for_each(|c| builder.push_input("siblings", *c));
-
-    //     hashes.iter().for_each(|c| builder.push_input("hashes", *c));
-    //     path.iter().for_each(|c| builder.push_input("path", *c));
-
-    //     builder.push_input("root", root);
-    //     builder.push_input("salt", salt);
-
-    //     let circuit = builder.build().map_err(|e| e.to_string())?;
-    //     let inputs = circuit
-    //         .get_public_inputs()
-    //         .ok_or("Unable to get public inputs!")?;
-    //     let proof = prove(circuit, &self.params, &mut self.rng).map_err(|e| e.to_string())?;
-
-    //     proof.serialize(proof_bytes).map_err(|e| e.to_string())?;
-    //     inputs
-    //         .serialize(public_inputs_bytes)
-    //         .map_err(|e| e.to_string())?;
-
-    //     Ok(())
-    // }
-
-    pub fn prove_run(
+    pub fn prove(
         &mut self,
         inputs: &[u8],
         proof_bytes: &mut Vec<u8>,
@@ -99,6 +59,16 @@ impl StorageProofs {
         let mut builder: CircomBuilder<Params256Ty> = self.builder.clone();
 
         parse_mpack_args(&mut builder, inputs)?;
+        // pub fn prove(
+        //     &mut self,
+        //     chunks: &[U256],
+        //     siblings: &[U256],
+        //     hashes: &[U256],
+        //     path: &[i32],
+        //     root: U256,
+        //     salt: U256,
+        //     proof_bytes: &mut Vec<u8>,
+        //     public_inputs_bytes: &mut Vec<u8>,
 
         let circuit: CircomCircuit<Params256Ty> = builder.build()
             .map_err(|e| e.to_string())?;
