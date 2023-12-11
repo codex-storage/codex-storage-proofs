@@ -142,6 +142,11 @@ impl StorageProofs {
                         }
                     }
                 },
+                rmpv::Value::String(s) => {
+                    // directly add a (name,string) arg pair 
+                    // ie, "path" => "/some/file/path"
+                    builder.push_input(name, decode_u256(val)?);
+                }
                 rmpv::Value::Ext(_, _) => {
                     // directly add a (name,u256) arg pair 
                     builder.push_input(name, decode_u256(val)?);
