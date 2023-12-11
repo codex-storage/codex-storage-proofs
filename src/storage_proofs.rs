@@ -133,7 +133,7 @@ impl StorageProofs {
                                         builder.push_input(name, decode_u256(val)?);
                                     }
                                 },
-                                None => todo!(),
+                                _ => return Err("expected inner array of u256".to_string()),
                             }
                         }
                     } else {
