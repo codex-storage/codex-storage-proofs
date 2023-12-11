@@ -90,11 +90,12 @@ impl StorageProofs {
         Ok(())
     }
 
-    pub fn proof_build_inputs(
+    pub fn prove_run(
         &mut self,
-        inputs: &[u8]
-    ) -> Result<CircomCircuit<Params256Ty>, String> {
-
+        inputs: &[u8],
+        proof_bytes: &mut Vec<u8>,
+        public_inputs_bytes: &mut Vec<u8>,
+    ) -> Result<(), String> {
         let mut builder: CircomBuilder<Params256Ty> = self.builder.clone();
 
         parse_mpack_args(&mut builder, inputs)?;
@@ -102,15 +103,6 @@ impl StorageProofs {
         let circuit: CircomCircuit<Params256Ty> = builder.build()
             .map_err(|e| e.to_string())?;
 
-        Ok(circuit)
-    }
-
-    pub fn prove_run(
-        &mut self,
-        circuit: CircomCircuit<Params256Ty>,
-        proof_bytes: &mut Vec<u8>,
-        public_inputs_bytes: &mut Vec<u8>,
-    ) -> Result<(), String> {
         let inputs = circuit
             .get_public_inputs()
             .ok_or("Unable to get public inputs!")?;
