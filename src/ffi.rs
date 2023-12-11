@@ -144,6 +144,31 @@ pub unsafe extern "C" fn prove(
     Box::into_raw(Box::new(ProofCtx::new(proof_bytes, public_inputs_bytes)))
 }
 
+/// # Safety
+///
+/// Use after constructing a StorageProofs object with init
+#[no_mangle]
+pub unsafe extern "C" fn prove_mpack(
+    prover_ptr: *mut StorageProofs,
+    args: *const Buffer,
+) -> *mut ProofCtx {
+    let inputs = std::slice::from_raw_parts((*args).data, (*args).len);
+
+    let proof_bytes = &mut Vec::new();
+    let public_inputs_bytes = &mut Vec::new();
+
+    let mut _prover = &mut *prover_ptr;
+    _prover
+        .prove(
+            inputs,
+            proof_bytes,
+            public_inputs_bytes,
+        )
+        .unwrap();
+
+    Box::into_raw(Box::new(ProofCtx::new(proof_bytes, public_inputs_bytes)))
+}
+
 #[no_mangle]
 /// # Safety
 ///
