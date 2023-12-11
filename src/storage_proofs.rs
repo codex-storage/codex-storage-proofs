@@ -13,7 +13,7 @@ use ruint::aliases::U256;
 use rmpv;
 use rmpv::decode::read_value;
 
-type CircomBuilderParams = CircomBuilder<ark_ec::bn::Bn<ark_bn254::Parameters>>;
+type Params256Ty = ark_ec::bn::Bn<ark_bn254::Parameters>;
 
 const EXT_ID_U256_LE: i8 = 50;
 const EXT_ID_U256_BE: i8 = 51;
@@ -108,7 +108,7 @@ impl StorageProofs {
     pub fn proof_build_inputs(
         &mut self,
         mut inputs: &[u8]
-    ) -> Result<CircomCircuit<ark_ec::bn::Bn<ark_bn254::Parameters>>, String> {
+    ) -> Result<CircomCircuit<Params256Ty>, String> {
 
         let values: rmpv::Value = read_value(&mut inputs).map_err(|e| e.to_string())?;
         let args: &Vec<(rmpv::Value, rmpv::Value)> = match values.as_map() {
@@ -116,7 +116,7 @@ impl StorageProofs {
             None => return Err("args must be a map of string to arrays".to_string()),
         };
 
-        let mut builder: CircomBuilderParams = self.builder.clone();
+        let mut builder: CircomBuilder<Params256Ty> = self.builder.clone();
         for (key, val) in args {
             let name = match key.as_str() {
                 Some(n) => n,
@@ -156,15 +156,15 @@ impl StorageProofs {
             }
         }
 
-        let circuit: CircomCircuit<ark_ec::bn::Bn<ark_bn254::Parameters>> = builder.build()
+        let circuit: CircomCircuit<Params256Ty> = builder.build()
             .map_err(|e| e.to_string())?;
 
         Ok(circuit)
     }
 
-    pub fn proof_run(
+    pub fn prove_run(
         &mut self,
-        circuit: CircomCircuit<ark_ec::bn::Bn<ark_bn254::Parameters>>,
+        circuit: CircomCircuit<Params256Ty>,
         proof_bytes: &mut Vec<u8>,
         public_inputs_bytes: &mut Vec<u8>,
     ) -> Result<(), String> {
