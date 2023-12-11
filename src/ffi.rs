@@ -142,7 +142,7 @@ mod tests {
     use ruint::aliases::U256;
 
     use crate::{
-        circuit_tests::utils::{digest, treehash},
+        circuit_tests::utils::{digest, treehash}, storage_proofs::EXT_ID_U256_LE,
     };
 
     use super::{init, prove, Buffer};
@@ -174,7 +174,8 @@ mod tests {
         let chunks = data.iter()
             .map(|c| {
                 let x = c.0.iter()
-                    .map(|c| Value::Ext(50, c.to_le_bytes_vec()))
+                    .map(|c|
+                        Value::Ext(EXT_ID_U256_LE, c.to_le_bytes_vec()))
                     .collect::<Vec<Value>>();
                 Value::Array(x)
             })
