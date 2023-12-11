@@ -1,7 +1,7 @@
 use std::fs::File;
 
 use ark_bn254::{Bn254, Fr};
-use ark_circom::{read_zkey, CircomBuilder, CircomConfig};
+use ark_circom::{read_zkey, CircomBuilder, CircomConfig, CircomCircuit};
 use ark_groth16::{
     create_random_proof as prove, generate_random_parameters, prepare_verifying_key, verify_proof,
     Proof, ProvingKey,
@@ -81,11 +81,9 @@ impl StorageProofs {
         Ok(())
     }
 
-    pub fn prove_mpack(
+    pub fn proof_build_inputs(
         &mut self,
-        proof_bytes: &mut Vec<u8>,
-        public_inputs_bytes: &mut Vec<u8>,
-    ) -> Result<(), String> {
+    ) -> Result<CircomCircuit<ark_ec::bn::Bn<ark_bn254::Parameters>>, String> {
 
         let mut builder = self.builder.clone();
 
@@ -104,8 +102,18 @@ impl StorageProofs {
         // builder.push_input("root", root);
         // builder.push_input("salt", salt);
 
-        let circuit = builder.build()
+        let circuit: CircomCircuit<ark_ec::bn::Bn<ark_bn254::Parameters>> = builder.build()
             .map_err(|e| e.to_string())?;
+
+        Ok(circuit)
+    }
+
+    pub fn proof_run(
+        &mut self,
+        circuit: CircomCircuit<ark_ec::bn::Bn<ark_bn254::Parameters>>,
+        proof_bytes: &mut Vec<u8>,
+        public_inputs_bytes: &mut Vec<u8>,
+    ) -> Result<(), String> {
         let inputs = circuit
             .get_public_inputs()
             .ok_or("Unable to get public inputs!")?;
