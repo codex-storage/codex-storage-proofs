@@ -77,6 +77,79 @@ pub unsafe extern "C" fn init(
 #[no_mangle]
 pub unsafe extern "C" fn prove(
     prover_ptr: *mut StorageProofs,
+    chunks: *const Buffer,
+    siblings: *const Buffer,
+    hashes: *const Buffer,
+    path: *const i32,
+    path_len: usize,
+    pubkey: *const Buffer,
+    root: *const Buffer,
+    salt: *const Buffer,
+) -> *mut ProofCtx {
+    let chunks = {
+        let slice = std::slice::from_raw_parts((*chunks).data, (*chunks).len);
+        slice
+            .chunks(U256::BYTES)
+            .map(|c| U256::try_from_le_slice(c).unwrap())
+            .collect::<Vec<U256>>()
+    };
+
+    let siblings = {
+        let slice = std::slice::from_raw_parts((*siblings).data, (*siblings).len);
+        slice
+            .chunks(U256::BYTES)
+            .map(|c| U256::try_from_le_slice(c).unwrap())
+            .collect::<Vec<U256>>()
+    };
+
+    let hashes = {
+        let slice = std::slice::from_raw_parts((*hashes).data, (*hashes).len);
+        slice
+            .chunks(U256::BYTES)
+            .map(|c| U256::try_from_le_slice(c).unwrap())
+            .collect::<Vec<U256>>()
+    };
+
+    let path = {
+        let slice = std::slice::from_raw_parts(path, path_len);
+        slice.to_vec()
+    };
+
+    let _pubkey =
+        U256::try_from_le_slice(std::slice::from_raw_parts((*pubkey).data, (*pubkey).len)).unwrap();
+
+    let root =
+        U256::try_from_le_slice(std::slice::from_raw_parts((*root).data, (*root).len)).unwrap();
+
+    let salt =
+        U256::try_from_le_slice(std::slice::from_raw_parts((*salt).data, (*salt).len)).unwrap();
+
+    let proof_bytes = &mut Vec::new();
+    let public_inputs_bytes = &mut Vec::new();
+
+    let mut _prover = &mut *prover_ptr;
+    _prover
+        .prove(
+            chunks.as_slice(),
+            siblings.as_slice(),
+            hashes.as_slice(),
+            path.as_slice(),
+            root,
+            salt,
+            proof_bytes,
+            public_inputs_bytes,
+        )
+        .unwrap();
+
+    Box::into_raw(Box::new(ProofCtx::new(proof_bytes, public_inputs_bytes)))
+}
+
+/// # Safety
+///
+/// Use after constructing a StorageProofs object with init
+#[no_mangle]
+pub unsafe extern "C" fn prove_mpack(
+    prover_ptr: *mut StorageProofs,
     args: *const Buffer,
 ) -> *mut ProofCtx {
     let inputs = std::slice::from_raw_parts((*args).data, (*args).len);
@@ -142,7 +215,7 @@ mod tests {
     use ruint::aliases::U256;
 
     use crate::{
-        circuit_tests::utils::{digest, treehash}, storage_proofs::EXT_ID_U256_LE,
+        circuit_tests::utils::{digest, treehash},
     };
 
     use super::{init, prove, Buffer};
@@ -174,8 +247,7 @@ mod tests {
         let chunks = data.iter()
             .map(|c| {
                 let x = c.0.iter()
-                    .map(|c|
-                        Value::Ext(EXT_ID_U256_LE, c.to_le_bytes_vec()))
+                    .map(|c| Value::Ext(50, c.to_le_bytes_vec()))
                     .collect::<Vec<Value>>();
                 Value::Array(x)
             })
