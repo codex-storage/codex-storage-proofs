@@ -15,8 +15,8 @@ use rmpv::decode::read_value;
 
 type Params256Ty = ark_ec::bn::Bn<ark_bn254::Parameters>;
 
-const EXT_ID_U256_LE: i8 = 50;
-const EXT_ID_U256_BE: i8 = 51;
+pub const EXT_ID_U256_LE: i8 = 50;
+pub const EXT_ID_U256_BE: i8 = 51;
 
 
 #[derive(Debug, Clone)]
@@ -173,8 +173,8 @@ fn parse_mpack_args(builder: &mut CircomBuilder<Params256Ty>, mut inputs: &[u8])
             None => return Err(format!("expected string value")),
         };
         match val {
+            // add a (name, Vec<u256>) or (name, Vev<Vec<u256>>) arrays
             rmpv::Value::Array(vals) => {
-                // add a (name, Vec<u256>) or (name, Vev<Vec<u256>>) arrays
                 if vals.len() > 0 && vals[0].is_array() {
                     for inner_val in vals {
                         match inner_val.as_array() {
@@ -192,14 +192,14 @@ fn parse_mpack_args(builder: &mut CircomBuilder<Params256Ty>, mut inputs: &[u8])
                     }
                 }
             },
+            // directly add a (name,string) arg pair 
+            // ie, "path" => "/some/file/path"
             rmpv::Value::String(s) => {
-                // directly add a (name,string) arg pair 
-                // ie, "path" => "/some/file/path"
                 let s = s.clone().into_bytes();
                 s.iter().for_each(|c| builder.push_input(name, *c));
             }
+            // directly add a (name,u256) arg pair 
             rmpv::Value::Ext(_, _) => {
-                // directly add a (name,u256) arg pair 
                 builder.push_input(name, decode_u256(val)?);
             },
             _ => return Err("unhandled argument kind".to_string()),
