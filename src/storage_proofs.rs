@@ -137,34 +137,47 @@ fn parse_mpack_args(builder: &mut CircomBuilder<Params256Ty>, mut inputs: &[u8])
         match val {
             // add a (name, Vec<u256>) or (name, Vev<Vec<u256>>) arrays
             rmpv::Value::Array(vals) => {
+                println!("deserde: array: {} size: {}", name, vals.len());
                 if vals.len() > 0 && vals[0].is_array() {
+                    println!("deserde: arrayOfArrays: {}", name);
                     for inner_val in vals {
                         match inner_val.as_array() {
                             Some(inner_vals) => {
+                                println!("\tinner array: {} sz: {}", name, inner_vals.len());
                                 for val in inner_vals {
-                                    builder.push_input(name, decode_u256(val)?);
+                                    let n = decode_u256(val)?;
+                                    println!("\tval: {} ", n);
+                                    // builder.push_input(name, n);
                                 }
                             },
-                            _ => return Err("expected inner array of u256".to_string()),
+                            _ => {
+                                print!("error expected array: {}", name);
+                                return Err("expected inner array of u256".to_string())
+                            },
                         }
                     }
                 } else {
                     println!("deserde: name: {}", name);
                     for val in vals {
-                        println!("  {}", decode_u256(val)?);
-                        builder.push_input(name, decode_u256(val)?);
+                        let n = decode_u256(val)?;
+                        println!("\t{}", n);
+                        builder.push_input(name, n);
                     }
+                    println!("done: name: {}", name);
                 }
             },
             // directly add a (name,string) arg pair 
             // ie, "path" => "/some/file/path"
             rmpv::Value::String(s) => {
+                println!("deserde: string");
                 let s = s.clone().into_bytes();
                 s.iter().for_each(|c| builder.push_input(name, (*c) as i32));
             }
             // directly add a (name,u256) arg pair 
             rmpv::Value::Ext(_, _) => {
-                builder.push_input(name, decode_u256(val)?);
+                let n = decode_u256(val)?;
+                println!("deserde: name: {} u256: {}", name, n);
+                builder.push_input(name, n);
             },
             _ => return Err("unhandled argument kind".to_string()),
         }
