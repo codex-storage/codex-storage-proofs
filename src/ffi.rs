@@ -361,7 +361,8 @@ mod tests {
 
         let root = treehash(hashes.as_slice());
 
-        let root_bytes: [u8; U256::BYTES] = root.to_le_bytes();
+        // let root_bytes: [u8; U256::BYTES] = root.to_le_bytes();
+        let root_mpk = u256_to_mpack(&root);
 
         // Serialize the value types to an array pointer
         let mut mpk_data = Value::Map(vec![
