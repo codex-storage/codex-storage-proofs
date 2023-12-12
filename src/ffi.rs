@@ -331,12 +331,47 @@ mod tests {
             })
             .collect::<Vec<Value>>();
         let chunks = Value::Array(chunks);
-        let mut data = Value::Map(vec![(Value::String("chunks".into()), chunks.clone() )]);
 
         println!("Debug: chunks: {:?}", chunks[0][0]);
 
+        let hashes: Vec<U256> = data.iter().map(|c| c.1).collect();
+        let hashes_slice: Vec<u8> = hashes.iter().map(|c| c.to_le_bytes_vec()).flatten().collect();
+
+        let path = [0, 1, 2, 3];
+        let parent_hash_l = hash(&[hashes[0], hashes[1]]);
+        let parent_hash_r = hash(&[hashes[2], hashes[3]]);
+
+        let sibling_hashes = &[
+            hashes[1],
+            parent_hash_r,
+            hashes[0],
+            parent_hash_r,
+            hashes[3],
+            parent_hash_l,
+            hashes[2],
+            parent_hash_l,
+        ];
+
+        let siblings: Vec<u8> = sibling_hashes
+            .iter()
+            .map(|c| c.to_le_bytes_vec())
+            .flatten()
+            .collect();
+
+        let root = treehash(hashes.as_slice());
+
+        let root_bytes: [u8; U256::BYTES] = root.to_le_bytes();
+
         // Serialize the value types to an array pointer
-        write_value(&mut buf, &data).unwrap();
+        let mut mpk_data = Value::Map(vec![
+            (Value::String("chunks".into()), chunks.clone() ),
+            (Value::String("siblings".into()), siblings_mpk.clone() ),
+            (Value::String("hashings".into()), hashings_mpk.clone() ),
+            (Value::String("path".into()), path_mpk.clone() ),
+            (Value::String("root".into()), root_mpk.clone() ),
+            (Value::String("salt".into()), salt_mpk.clone() ),
+        ]);
+        write_value(&mut buf, &mpk_data ).unwrap();
         let mut rd: &[u8] = &buf[..];
         
         let args_buff = Buffer {
