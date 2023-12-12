@@ -301,6 +301,9 @@ mod tests {
 
     }
 
+    fn u256_to_mpack(n: &U256) -> Value {
+        Value::Ext(EXT_ID_U256_LE, n.to_le_bytes_vec())
+    }
 
     #[test]
     fn test_storer_ffi_mpack() {
@@ -324,9 +327,7 @@ mod tests {
 
         let chunks = data.iter()
             .map(|c| {
-                let x = c.0.iter()
-                    .map(|c| Value::Ext(EXT_ID_U256_LE, c.to_le_bytes_vec()))
-                    .collect::<Vec<Value>>();
+                let x = c.0.iter().map(u256_to_mpack).collect::<Vec<Value>>();
                 Value::Array(x)
             })
             .collect::<Vec<Value>>();
@@ -335,7 +336,8 @@ mod tests {
         println!("Debug: chunks: {:?}", chunks[0][0]);
 
         let hashes: Vec<U256> = data.iter().map(|c| c.1).collect();
-        let hashes_slice: Vec<u8> = hashes.iter().map(|c| c.to_le_bytes_vec()).flatten().collect();
+
+        let hashes_mpk = Value::Array(hashes.iter().map(u256_to_mpack).collect());
 
         let path = [0, 1, 2, 3];
         let parent_hash_l = hash(&[hashes[0], hashes[1]]);
@@ -366,7 +368,7 @@ mod tests {
         let mut mpk_data = Value::Map(vec![
             (Value::String("chunks".into()), chunks.clone() ),
             (Value::String("siblings".into()), siblings_mpk.clone() ),
-            (Value::String("hashings".into()), hashings_mpk.clone() ),
+            (Value::String("hashes".into()), hashes_mpk.clone() ),
             (Value::String("path".into()), path_mpk.clone() ),
             (Value::String("root".into()), root_mpk.clone() ),
             (Value::String("salt".into()), salt_mpk.clone() ),
