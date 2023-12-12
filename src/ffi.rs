@@ -93,6 +93,10 @@ pub unsafe extern "C" fn prove(
             .map(|c| U256::try_from_le_slice(c).unwrap())
             .collect::<Vec<U256>>()
     };
+    println!("prove:args: {}", "chunks");
+    for n in chunks {
+        println!("\t{}", n);
+    }
 
     let siblings = {
         let slice = std::slice::from_raw_parts((*siblings).data, (*siblings).len);
@@ -210,7 +214,7 @@ pub unsafe extern "C" fn free_proof_ctx(ctx: *mut ProofCtx) {
 
 #[cfg(test)]
 mod tests {
-    use ark_std::rand::{distributions::Alphanumeric, rngs::ThreadRng, Rng};
+    use ark_std::rand::{distributions::Alphanumeric, rngs::{ThreadRng, StdRng}, Rng, SeedableRng};
     use rs_poseidon::poseidon::hash;
     use ruint::aliases::U256;
 
@@ -303,7 +307,7 @@ mod tests {
         // and hash is the hash of each vector generated using the digest function
         let data = (0..4)
             .map(|_| {
-                let rng = ThreadRng::default();
+                let rng = StdRng::seed_from_u64(42);
                 let preimages: Vec<U256> = rng
                     .sample_iter(Alphanumeric)
                     .take(256)

@@ -149,7 +149,9 @@ fn parse_mpack_args(builder: &mut CircomBuilder<Params256Ty>, mut inputs: &[u8])
                         }
                     }
                 } else {
+                    println!("deserde: name: {}", name);
                     for val in vals {
+                        println!("  {}", decode_u256(val)?);
                         builder.push_input(name, decode_u256(val)?);
                     }
                 }
