@@ -354,11 +354,10 @@ mod tests {
             parent_hash_l,
         ];
 
-        let siblings: Vec<u8> = sibling_hashes
+        let siblings_mpk: Value = Value::Array(sibling_hashes
             .iter()
-            .map(|c| c.to_le_bytes_vec())
-            .flatten()
-            .collect();
+            .map(u256_to_mpack)
+            .collect::<Vec<Value>>());
 
         let root = treehash(hashes.as_slice());
 
