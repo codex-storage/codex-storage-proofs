@@ -219,7 +219,7 @@ mod tests {
     use ruint::aliases::U256;
 
     use crate::{
-        circuit_tests::utils::{digest, treehash}, storage_proofs::EXT_ID_U256_LE,
+        circuit_tests::utils::{digest, treehash}, storage_proofs::EXT_ID_U256_LE, ffi::prove_mpack,
     };
 
     use super::{init, prove, Buffer};
@@ -237,7 +237,7 @@ mod tests {
         // we build them up in mpack Value enums
         let data = (0..4)
             .map(|_| {
-                let rng = ThreadRng::default();
+                let rng = StdRng::seed_from_u64(42);
                 let preimages: Vec<U256> = rng
                     .sample_iter(Alphanumeric)
                     .take(256)
@@ -298,6 +298,72 @@ mod tests {
 
         assert_eq!(arg_chunks.len(), 4);
         assert_eq!(arg_chunks[0].len(), 256);
+
+    }
+
+
+    #[test]
+    fn test_storer_ffi_mpack() {
+        let mut buf = Vec::new();
+        let val = Value::from("le message");
+
+        // example of serializing the random chunk data
+        // we build them up in mpack Value enums
+        let data = (0..4)
+            .map(|_| {
+                let rng = StdRng::seed_from_u64(42);
+                let preimages: Vec<U256> = rng
+                    .sample_iter(Alphanumeric)
+                    .take(256)
+                    .map(|c| U256::from(c))
+                    .collect();
+                let hash = digest(&preimages, Some(16));
+                (preimages, hash)
+            })
+            .collect::<Vec<(Vec<U256>, U256)>>();
+
+        let chunks = data.iter()
+            .map(|c| {
+                let x = c.0.iter()
+                    .map(|c| Value::Ext(EXT_ID_U256_LE, c.to_le_bytes_vec()))
+                    .collect::<Vec<Value>>();
+                Value::Array(x)
+            })
+            .collect::<Vec<Value>>();
+        let chunks = Value::Array(chunks);
+        let mut data = Value::Map(vec![(Value::String("chunks".into()), chunks.clone() )]);
+
+        println!("Debug: chunks: {:?}", chunks[0][0]);
+
+        // Serialize the value types to an array pointer
+        write_value(&mut buf, &data).unwrap();
+        let mut rd: &[u8] = &buf[..];
+        
+        let args_buff = Buffer {
+            data: rd.as_ptr() as *const u8,
+            len: rd.len(),
+        };
+
+        let r1cs_path = "src/circuit_tests/artifacts/storer-test.r1cs";
+        let wasm_path = "src/circuit_tests/artifacts/storer-test_js/storer-test.wasm";
+
+        let r1cs = &Buffer {
+            data: r1cs_path.as_ptr(),
+            len: r1cs_path.len(),
+        };
+
+        let wasm = &Buffer {
+            data: wasm_path.as_ptr(),
+            len: wasm_path.len(),
+        };
+
+        let prover_ptr = unsafe { init(&r1cs, &wasm, std::ptr::null()) };
+        let prove_ctx = unsafe {
+             prove_mpack(
+                prover_ptr,
+                &args_buff as *const Buffer,
+            );
+        };
 
     }
 
