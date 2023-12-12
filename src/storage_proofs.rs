@@ -182,5 +182,7 @@ fn parse_mpack_args(builder: &mut CircomBuilder<Params256Ty>, mut inputs: &[u8])
             _ => return Err("unhandled argument kind".to_string()),
         }
     }
+
+    println!("parse_mpack_args DONE!");
     Ok(())
 }
