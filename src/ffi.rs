@@ -163,7 +163,7 @@ pub unsafe extern "C" fn prove_mpack(
 
     let mut _prover = &mut *prover_ptr;
     _prover
-        .prove(
+        .prove_mpack(
             inputs,
             proof_bytes,
             public_inputs_bytes,

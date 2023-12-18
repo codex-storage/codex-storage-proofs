@@ -162,8 +162,43 @@ fn decode_u256(val: &rmpv::Value) -> Result<U256, String> {
     }
 }
 
-fn parse_mpack_args(builder: &mut CircomBuilder<Params256Ty>,
-                    mut inputs: &[u8]) -> Result<(), String> {
+fn parse_mpack_arrays(
+    builder: &mut CircomBuilder<Params256Ty>,
+    name: &str,
+    array: &Vec<rmpv::Value>
+) -> Result<(), String> {
+
+    println!("deserde: array: {} size: {}", name, array.len());
+    if array.len() > 0 && array[0].is_array() {
+        println!("deserde: arrayOfArrays: {}", name);
+        for element in array {
+            match element .as_array() {
+                Some(element ) => {
+                    parse_mpack_arrays(builder, name, element)?;
+                },
+                _ => {
+                    print!("error expected array: {}", name);
+                    return Err("expected inner array of u256".to_string())
+                },
+            }
+        }
+    } else {
+        println!("deserde: name: {}", name);
+        for val in array {
+            let n = decode_u256(val)?;
+            println!("\t{}", n);
+            builder.push_input(name, n);
+        }
+        println!("done: name: {}", name);
+    }
+
+    Ok(())
+}
+
+fn parse_mpack_args(
+    builder: &mut CircomBuilder<Params256Ty>,
+    mut inputs: &[u8]
+) -> Result<(), String> {
     let values: rmpv::Value = read_value(&mut inputs).map_err(|e| e.to_string())?;
     let args: &Vec<(rmpv::Value, rmpv::Value)> = match values.as_map() {
         Some(args) => args,
@@ -178,34 +213,7 @@ fn parse_mpack_args(builder: &mut CircomBuilder<Params256Ty>,
         match val {
             // add a (name, Vec<u256>) or (name, Vev<Vec<u256>>) arrays
             rmpv::Value::Array(vals) => {
-                println!("deserde: array: {} size: {}", name, vals.len());
-                if vals.len() > 0 && vals[0].is_array() {
-                    println!("deserde: arrayOfArrays: {}", name);
-                    for inner_val in vals {
-                        match inner_val.as_array() {
-                            Some(inner_vals) => {
-                                println!("\tinner array: {} sz: {}", name, inner_vals.len());
-                                for val in inner_vals {
-                                    let n = decode_u256(val)?;
-                                    println!("\tval: {} ", n);
-                                    // builder.push_input(name, n);
-                                }
-                            },
-                            _ => {
-                                print!("error expected array: {}", name);
-                                return Err("expected inner array of u256".to_string())
-                            },
-                        }
-                    }
-                } else {
-                    println!("deserde: name: {}", name);
-                    for val in vals {
-                        let n = decode_u256(val)?;
-                        println!("\t{}", n);
-                        builder.push_input(name, n);
-                    }
-                    println!("done: name: {}", name);
-                }
+                parse_mpack_arrays(builder, name, vals)?;
             },
             // directly add a (name,u256) arg pair 
             rmpv::Value::Ext(_, _) => {
