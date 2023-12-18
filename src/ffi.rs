@@ -152,7 +152,7 @@ pub unsafe extern "C" fn prove(
 ///
 /// Use after constructing a StorageProofs object with init
 #[no_mangle]
-pub unsafe extern "C" fn prove_mpack(
+pub unsafe extern "C" fn prove_mpack_ext(
     prover_ptr: *mut StorageProofs,
     args: *const Buffer,
 ) -> *mut ProofCtx {
@@ -397,11 +397,11 @@ mod tests {
         };
 
         let prover_ptr = unsafe { init(&r1cs, &wasm, std::ptr::null()) };
-        let prove_ctx = unsafe {
-             prove_mpack(
+        let prove_ctx: *mut crate::ffi::ProofCtx = unsafe {
+            prove_mpack_ext(
                 prover_ptr,
                 &args_buff as *const Buffer,
-            );
+            )
         };
 
         assert!(prove_ctx.is_null() == false);
@@ -495,7 +495,7 @@ mod tests {
         };
 
         let prover_ptr = unsafe { init(&r1cs, &wasm, std::ptr::null()) };
-        let prove_ctx = unsafe {
+        let prove_ctx: *mut crate::ffi::ProofCtx = unsafe {
             prove(
                 prover_ptr,
                 &chunks_buff as *const Buffer,
