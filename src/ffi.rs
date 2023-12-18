@@ -219,7 +219,7 @@ mod tests {
     use ruint::aliases::U256;
 
     use crate::{
-        circuit_tests::utils::{digest, treehash}, storage_proofs::EXT_ID_U256_LE, ffi::prove_mpack,
+        circuit_tests::utils::{digest, treehash}, storage_proofs::EXT_ID_U256_LE, ffi::prove_mpack_ext
     };
 
     use super::{init, prove, Buffer};
