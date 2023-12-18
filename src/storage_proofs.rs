@@ -59,16 +59,6 @@ impl StorageProofs {
         let mut builder: CircomBuilder<Params256Ty> = self.builder.clone();
 
         parse_mpack_args(&mut builder, inputs)?;
-        // pub fn prove(
-        //     &mut self,
-        //     chunks: &[U256],
-        //     siblings: &[U256],
-        //     hashes: &[U256],
-        //     path: &[i32],
-        //     root: U256,
-        //     salt: U256,
-        //     proof_bytes: &mut Vec<u8>,
-        //     public_inputs_bytes: &mut Vec<u8>,
 
         let circuit: CircomCircuit<Params256Ty> = builder.build()
             .map_err(|e| e.to_string())?;
@@ -226,7 +216,7 @@ fn parse_mpack_args(
             },
             // directly add a (name,u256) arg pair 
             rmpv::Value::Ext(_, _) => {
-                let n = decode_u256(val)?;
+                let n = decode_number(val)?;
                 println!("deserde: name: {} u256: {}", name, n);
                 builder.push_input(name, n);
             },
