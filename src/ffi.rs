@@ -93,10 +93,10 @@ pub unsafe extern "C" fn prove(
             .map(|c| U256::try_from_le_slice(c).unwrap())
             .collect::<Vec<U256>>()
     };
-    println!("prove:args: {}", "chunks");
-    for n in chunks {
-        println!("\t{}", n);
-    }
+    // println!("prove:args: {}", "chunks");
+    // for n in chunks {
+    //     println!("\t{}", n);
+    // }
 
     let siblings = {
         let slice = std::slice::from_raw_parts((*siblings).data, (*siblings).len);
@@ -131,19 +131,19 @@ pub unsafe extern "C" fn prove(
     let proof_bytes = &mut Vec::new();
     let public_inputs_bytes = &mut Vec::new();
 
-    // let mut _prover = &mut *prover_ptr;
-    // _prover
-    //     .prove(
-    //         chunks.as_slice(),
-    //         siblings.as_slice(),
-    //         hashes.as_slice(),
-    //         path.as_slice(),
-    //         root,
-    //         salt,
-    //         proof_bytes,
-    //         public_inputs_bytes,
-    //     )
-    //     .unwrap();
+    let mut _prover = &mut *prover_ptr;
+    _prover
+        .prove(
+            chunks.as_slice(),
+            siblings.as_slice(),
+            hashes.as_slice(),
+            path.as_slice(),
+            root,
+            salt,
+            proof_bytes,
+            public_inputs_bytes,
+        )
+        .unwrap();
 
     Box::into_raw(Box::new(ProofCtx::new(proof_bytes, public_inputs_bytes)))
 }
@@ -340,6 +340,8 @@ mod tests {
         let hashes_mpk = Value::Array(hashes.iter().map(u256_to_mpack).collect());
 
         let path = [0, 1, 2, 3];
+        let path_mpk = Value::Array(path.iter().map(|i| rmpv::Value::from(*i)).collect());
+
         let parent_hash_l = hash(&[hashes[0], hashes[1]]);
         let parent_hash_r = hash(&[hashes[2], hashes[3]]);
 
@@ -371,10 +373,10 @@ mod tests {
             (Value::String("hashes".into()), hashes_mpk.clone() ),
             (Value::String("path".into()), path_mpk.clone() ),
             (Value::String("root".into()), root_mpk.clone() ),
-            (Value::String("salt".into()), salt_mpk.clone() ),
+            (Value::String("salt".into()), root_mpk.clone() ),
         ]);
         write_value(&mut buf, &mpk_data ).unwrap();
-        let mut rd: &[u8] = &buf[..];
+        let rd: &[u8] = &buf[..];
         
         let args_buff = Buffer {
             data: rd.as_ptr() as *const u8,
@@ -402,6 +404,7 @@ mod tests {
             );
         };
 
+        assert!(prove_ctx.is_null() == false);
     }
 
     #[test]
