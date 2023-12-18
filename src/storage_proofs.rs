@@ -146,7 +146,7 @@ impl StorageProofs {
     }
 }
 
-fn decode_u256(val: &rmpv::Value) -> Result<U256, String> {
+fn decode_number(val: &rmpv::Value) -> Result<U256, String> {
     match val {
         rmpv::Value::Ext(id, val) => {
             match *id {
@@ -158,7 +158,16 @@ fn decode_u256(val: &rmpv::Value) -> Result<U256, String> {
                 num => return Err(format!("unhandled ext id {}", num)),
             }
         },
-        _ => return Err("expected ext mpack kind".to_string()),
+        rmpv::Value::Integer(val) => {
+            if let Some(val) = val.as_u64() {
+                return Ok(U256::from(val));
+            } else if let Some(val) = val.as_i64() {
+                return Ok(U256::from(val));
+            } else {
+                return Err("unexpected integer kind".to_string());
+            }
+        }
+        _ => return Err("expected ext mpack kind or integer".to_string()),
     }
 }
 
@@ -185,7 +194,7 @@ fn parse_mpack_arrays(
     } else {
         println!("deserde: name: {}", name);
         for val in array {
-            let n = decode_u256(val)?;
+            let n = decode_number(val)?;
             println!("\t{}", n);
             builder.push_input(name, n);
         }
