@@ -36,7 +36,7 @@ impl ProofCtx {
 ///
 /// Construct a StorageProofs object
 #[no_mangle]
-pub unsafe extern "C" fn init(
+pub unsafe extern "C" fn init_proof_ctx(
     r1cs: Buffer,
     wasm: Buffer,
     zkey: *const Buffer,
@@ -215,7 +215,7 @@ mod tests {
         circuit_tests::utils::{digest, treehash}, storage_proofs::EXT_ID_U256_LE, ffi::prove_mpack_ext
     };
 
-    use super::{init, prove, Buffer};
+    use super::{init_proof_ctx, prove, Buffer};
 
     use rmpv::Value;
     use rmpv::encode::write_value;
@@ -389,7 +389,7 @@ mod tests {
             len: wasm_path.len(),
         };
 
-        let prover_ptr = unsafe { init(r1cs, wasm, std::ptr::null()) };
+        let prover_ptr = unsafe { init_proof_ctx(r1cs, wasm, std::ptr::null()) };
         let prove_ctx: *mut crate::ffi::ProofCtx = unsafe {
             prove_mpack_ext(
                 prover_ptr,
@@ -487,7 +487,7 @@ mod tests {
             len: wasm_path.len(),
         };
 
-        let prover_ptr = unsafe { init(r1cs, wasm, std::ptr::null()) };
+        let prover_ptr = unsafe { init_proof_ctx(r1cs, wasm, std::ptr::null()) };
         let prove_ctx: *mut crate::ffi::ProofCtx = unsafe {
             prove(
                 prover_ptr,
