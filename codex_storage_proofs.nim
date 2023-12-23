@@ -6,7 +6,8 @@ import std/macros
 
 const
   currentDir = currentSourcePath().parentDir()
-  libPath* = currentDir/"target"/"release"/"libcodex_storage_proofs.a"
+  libDir* = currentDir/"target"/"release"
+  libPath* = libDir/"libcodex_storage_proofs.a"
 
 static:
   let cmd = "cargo build --release"
@@ -17,3 +18,5 @@ static:
   if exitCode != 0:
     raise (ref Defect)(msg: "Failed to build codex-storage-proofs")
 
+
+{.passl: "-lcodex_storage_proofs" & " -L" & libDir.}
