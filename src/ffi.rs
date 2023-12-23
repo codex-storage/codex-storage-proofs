@@ -37,32 +37,25 @@ impl ProofCtx {
 /// Construct a StorageProofs object
 #[no_mangle]
 pub unsafe extern "C" fn init(
-    r1cs: const Buffer,
-    wasm: const Buffer,
-    zkey: const Buffer,
+    r1cs: Buffer,
+    wasm: Buffer,
+    zkey: *const Buffer,
 ) -> *mut StorageProofs {
     let r1cs = {
-        if r1cs.is_null() {
-            return std::ptr::null_mut();
-        }
 
-        let slice = std::slice::from_raw_parts((*r1cs).data, (*r1cs).len);
-        str::from_utf8(slice).unwrap().to_string()
+        let slice = std::slice::from_raw_parts((r1cs).data, (r1cs).len);
+        str::from_utf8(slice).unwrap().to_string().to_owned()
     };
 
     let wasm = {
-        if wasm.is_null() {
-            return std::ptr::null_mut();
-        }
-
-        let slice = std::slice::from_raw_parts((*wasm).data, (*wasm).len);
-        str::from_utf8(slice).unwrap().to_string()
+        let slice = std::slice::from_raw_parts((wasm).data, (wasm).len);
+        str::from_utf8(slice).unwrap().to_string().to_owned()
     };
 
     let zkey = {
         if !zkey.is_null() {
             let slice = std::slice::from_raw_parts((*zkey).data, (*zkey).len);
-            Some(str::from_utf8(slice).unwrap().to_string())
+            Some(str::from_utf8(slice).unwrap().to_string().to_owned())
         } else {
             None
         }
@@ -386,17 +379,17 @@ mod tests {
         let r1cs_path = "src/circuit_tests/artifacts/storer-test.r1cs";
         let wasm_path = "src/circuit_tests/artifacts/storer-test_js/storer-test.wasm";
 
-        let r1cs = &Buffer {
+        let r1cs = Buffer {
             data: r1cs_path.as_ptr(),
             len: r1cs_path.len(),
         };
 
-        let wasm = &Buffer {
+        let wasm = Buffer {
             data: wasm_path.as_ptr(),
             len: wasm_path.len(),
         };
 
-        let prover_ptr = unsafe { init(&r1cs, &wasm, std::ptr::null()) };
+        let prover_ptr = unsafe { init(r1cs, wasm, std::ptr::null()) };
         let prove_ctx: *mut crate::ffi::ProofCtx = unsafe {
             prove_mpack_ext(
                 prover_ptr,
@@ -484,17 +477,17 @@ mod tests {
         let r1cs_path = "src/circuit_tests/artifacts/storer-test.r1cs";
         let wasm_path = "src/circuit_tests/artifacts/storer-test_js/storer-test.wasm";
 
-        let r1cs = &Buffer {
+        let r1cs = Buffer {
             data: r1cs_path.as_ptr(),
             len: r1cs_path.len(),
         };
 
-        let wasm = &Buffer {
+        let wasm = Buffer {
             data: wasm_path.as_ptr(),
             len: wasm_path.len(),
         };
 
-        let prover_ptr = unsafe { init(&r1cs, &wasm, std::ptr::null()) };
+        let prover_ptr = unsafe { init(r1cs, wasm, std::ptr::null()) };
         let prove_ctx: *mut crate::ffi::ProofCtx = unsafe {
             prove(
                 prover_ptr,
