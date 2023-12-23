@@ -207,7 +207,7 @@ pub unsafe extern "C" fn free_proof_ctx(ctx: *mut ProofCtx) {
 
 #[cfg(test)]
 mod tests {
-    use ark_std::rand::{distributions::Alphanumeric, rngs::{ThreadRng, StdRng}, Rng, SeedableRng};
+    use ark_std::rand::{distributions::Alphanumeric, rngs::StdRng, Rng, SeedableRng};
     use rs_poseidon::poseidon::hash;
     use ruint::aliases::U256;
 
@@ -224,7 +224,7 @@ mod tests {
     #[test]
     fn test_mpack() {
         let mut buf = Vec::new();
-        let val = Value::from("le message");
+        let _val = Value::from("le message");
 
         // example of serializing the random chunk data
         // we build them up in mpack Value enums
@@ -250,7 +250,7 @@ mod tests {
             })
             .collect::<Vec<Value>>();
         let chunks = Value::Array(chunks);
-        let mut data = Value::Map(vec![(Value::String("chunks".into()), chunks.clone() )]);
+        let data = Value::Map(vec![(Value::String("chunks".into()), chunks.clone() )]);
 
         println!("Debug: chunks: {:?}", chunks[0][0]);
 
@@ -301,7 +301,7 @@ mod tests {
     #[test]
     fn test_storer_ffi_mpack() {
         let mut buf = Vec::new();
-        let val = Value::from("le message");
+        let _val = Value::from("le message");
 
         // example of serializing the random chunk data
         // we build them up in mpack Value enums
@@ -360,7 +360,7 @@ mod tests {
         let root_mpk = u256_to_mpack(&root);
 
         // Serialize the value types to an array pointer
-        let mut mpk_data = Value::Map(vec![
+        let mpk_data = Value::Map(vec![
             (Value::String("chunks".into()), chunks.clone() ),
             (Value::String("siblings".into()), siblings_mpk.clone() ),
             (Value::String("hashes".into()), hashes_mpk.clone() ),
