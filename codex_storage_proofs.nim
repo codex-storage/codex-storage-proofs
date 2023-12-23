@@ -10,10 +10,10 @@ const
 
 static:
   let cmd = "cargo build --release"
-  hint "\nBuilding codex-storage-proofs: " & cmd
+  warning "\nBuilding codex-storage-proofs: " & cmd
   let (output, exitCode) = gorgeEx cmd
   for ln in output.splitLines():
-    hint("cargo> " & ln)
+    warning("cargo> " & ln)
   if exitCode != 0:
     raise (ref Defect)(msg: "Failed to build codex-storage-proofs")
 
