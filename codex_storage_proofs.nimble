@@ -7,3 +7,5 @@ srcDir        = "."
 # Dependencies
 
 requires "nim >= 1.6.14"
+
+include "build.nims"

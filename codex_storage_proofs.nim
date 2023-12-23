@@ -20,3 +20,5 @@ static:
 
 
 {.passl: "-lcodex_storage_proofs" & " -L" & libDir.}
+
+proc prove_mpack_ext()
