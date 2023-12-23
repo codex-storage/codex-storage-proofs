@@ -25,4 +25,4 @@ import codex_proofs_ffi
 export codex_proofs_ffi
 
 when isMainModule:
-  init()
+  init_proof_ctx()

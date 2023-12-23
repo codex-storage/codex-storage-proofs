@@ -26,9 +26,9 @@ proc free_prover*(prover: ptr StorageProofs) {.importc: "free_prover".}
 ## # Safety
 #
 # Construct a StorageProofs object
-proc init_proof_ctx*(r1cs: Buffer,
-                     wasm: Buffer,
-                     zkey: ptr Buffer): (ptr StorageProofs) {.importc: "init_proof_ctx".}
+proc init_storage_proofs*(r1cs: Buffer,
+                          wasm: Buffer,
+                          zkey: ptr Buffer): (ptr StorageProofs) {.importc: "init_storage_proofs".}
 
 ## # Safety
 #

@@ -36,7 +36,7 @@ impl ProofCtx {
 ///
 /// Construct a StorageProofs object
 #[no_mangle]
-pub unsafe extern "C" fn init_proof_ctx(
+pub unsafe extern "C" fn init_storage_proofs(
     r1cs: Buffer,
     wasm: Buffer,
     zkey: *const Buffer,
