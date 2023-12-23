@@ -37,9 +37,9 @@ impl ProofCtx {
 /// Construct a StorageProofs object
 #[no_mangle]
 pub unsafe extern "C" fn init(
-    r1cs: *const &Buffer,
-    wasm: *const &Buffer,
-    zkey: *const &Buffer,
+    r1cs: const Buffer,
+    wasm: const Buffer,
+    zkey: const Buffer,
 ) -> *mut StorageProofs {
     let r1cs = {
         if r1cs.is_null() {
