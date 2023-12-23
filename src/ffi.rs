@@ -207,6 +207,10 @@ pub unsafe extern "C" fn free_proof_ctx(ctx: *mut ProofCtx) {
 
 #[cfg(test)]
 mod tests {
+    use std::fs::File;
+    use std::io::prelude::*;
+
+
     use ark_std::rand::{distributions::Alphanumeric, rngs::StdRng, Rng, SeedableRng};
     use rs_poseidon::poseidon::hash;
     use ruint::aliases::U256;
@@ -371,6 +375,9 @@ mod tests {
         write_value(&mut buf, &mpk_data ).unwrap();
         let rd: &[u8] = &buf[..];
         
+        let mut file = File::create("proof_test.mpack").unwrap();
+        file.write_all(rd).unwrap();
+
         let args_buff = Buffer {
             data: rd.as_ptr() as *const u8,
             len: rd.len(),
