@@ -1,7 +1,6 @@
 
 import std/os
 import std/strutils
-import std/sha1
 import std/macros
 
 const
@@ -23,14 +22,23 @@ static:
 
 include codex_proofs_ffi
 
-proc unsafeBufferPath*(path: var string): Buffer =
+template unsafeBufferPath*(path: var string): Buffer =
   assert path.len() > 0
-  Buffer(data: cast[ptr uint8](path.cstring), len: path.len().uint)
+  Buffer(data: cast[ptr uint8](path.cstring),
+         len: path.len().uint)
+
+template unsafeBufferFromFile*(path: string): Buffer =
+  assert path.len() > 0
+  let entireFile = readFile(path)
+
+  Buffer(data: cast[ptr uint8](entireFile.cstring),
+         len: entireFile.len().uint)
 
 when isMainModule:
   var
     r1cs_path = "src/circuit_tests/artifacts/storer-test.r1cs"
     wasm_path = "src/circuit_tests/artifacts/storer-test_js/storer-test.wasm"
+
   let
     r1cs_buff = unsafeBufferPath(r1cs_path)
     wasm_buff = unsafeBufferPath(wasm_path)
@@ -40,3 +48,8 @@ when isMainModule:
   echo "storage_ctx: ", storage_ctx.repr
   assert storage_ctx != nil
 
+  let
+    mpack_arg_path = "test/proof_test.mpack"
+    proofArgs = unsafeBufferFromFile(mpack_arg_path)
+  echo "proofArgs:size: ", proofArgs.len
+  # prove_mpack_ext()
