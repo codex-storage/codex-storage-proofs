@@ -48,8 +48,11 @@ when isMainModule:
   echo "storage_ctx: ", storage_ctx.repr
   assert storage_ctx != nil
 
-  let
+  var
     mpack_arg_path = "test/proof_test.mpack"
-    proofArgs = unsafeBufferFromFile(mpack_arg_path)
-  echo "proofArgs:size: ", proofArgs.len
-  # prove_mpack_ext()
+    proofBuff = unsafeBufferFromFile(mpack_arg_path)
+  echo "proofArgs:size: ", proofBuff.len
+  let res = prove_mpack_ext(storage_ctx, addr proofBuff)
+
+  echo "result: ", res.repr
+
