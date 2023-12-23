@@ -8,6 +8,7 @@ opt-level = 3
 
 [profile.release]
 strip = true
+opt-level = 2
 
 [lib]
 crate-type = [
