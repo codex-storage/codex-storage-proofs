@@ -9,8 +9,11 @@ suite "storage proofs ffi":
       r1csPath = "src/circuit_tests/artifacts/storer-test.r1cs".absolutePath()
       wasmPath = "src/circuit_tests/artifacts/storer-test_js/storer-test.wasm".absolutePath()
 
-    assert r1csPath.fileExists()
-    assert wasmPath.fileExists()
+    if not r1csPath.fileExists():
+      raise newException(ValueError, "missing expected r1cs file: " & r1csPath)
+    if not wasmPath.fileExists():
+      raise newException(ValueError, "missing expected wasm file: " & wasmPath)
+
     let
       r1cs_buff = unsafeBufferPath(r1csPath)
       wasm_buff = unsafeBufferPath(wasmPath)
