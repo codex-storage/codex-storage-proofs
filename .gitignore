@@ -1,4 +1,8 @@
 node_modules/
+*
+!*/
+!*.*
+nim.cfg
 
 # Added by cargo
 
