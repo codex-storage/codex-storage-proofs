@@ -1,3 +1,4 @@
+import std/os
 
 task genffi, "update the nim ffi bindings":
   exec "cargo install nbindgen"
@@ -10,4 +11,8 @@ task compileCircuits, "compile test circuits":
   exec "circom src/circuit_tests/storer-test.circom --r1cs --wasm -o src/circuit_tests/artifacts"
 
 task tests, "run unit tests":
+  let storerR1cs = fileExists "src/circuit_tests/artifacts/storer-test.r1cs"
+  let storerWasm = fileExists "src/circuit_tests/artifacts/storer-test_js/storer-test.wasm"
+  if not storerR1cs or not storerWasm:
+    compileCircuitsTask()
   exec "nim c -r tests/tffi.nim"
