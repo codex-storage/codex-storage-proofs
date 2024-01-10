@@ -22,3 +22,4 @@ src/circuit_tests/artifacts/*
 !src/circuit_tests/artifacts/.keep
 codex_storage_proofs
 test/tffi
+node_modules
