@@ -1,4 +1,8 @@
 node_modules/
+*
+!*/
+!*.*
+nim.cfg
 
 # Added by cargo
 
@@ -16,3 +20,6 @@ test/circuits/artifacts
 out.log
 src/circuit_tests/artifacts/*
 !src/circuit_tests/artifacts/.keep
+codex_storage_proofs
+test/tffi
+node_modules

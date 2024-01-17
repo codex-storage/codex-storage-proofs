@@ -6,6 +6,10 @@ edition = "2021"
 [profile.dev]
 opt-level = 3
 
+[profile.release]
+strip = true
+opt-level = 2
+
 [lib]
 crate-type = [
   "staticlib", # Ensure it gets compiled as a (static) C library
@@ -37,3 +41,4 @@ serde_json = "1.0.94"
 num-traits = "0.2.15"
 ark-relations = { version = "0.4.0", features = ["std", "tracing-subscriber"] }
 rs-poseidon = {git = "https://github.com/status-im/rs-poseidon" }
+rmpv = "1.0.1"

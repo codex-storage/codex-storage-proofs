@@ -1,7 +1,7 @@
 use std::fs::File;
 
 use ark_bn254::{Bn254, Fr};
-use ark_circom::{read_zkey, CircomBuilder, CircomConfig};
+use ark_circom::{read_zkey, CircomBuilder, CircomConfig, CircomCircuit};
 use ark_groth16::{
     create_random_proof as prove, generate_random_parameters, prepare_verifying_key, verify_proof,
     Proof, ProvingKey,
@@ -9,6 +9,15 @@ use ark_groth16::{
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize, Read};
 use ark_std::rand::rngs::ThreadRng;
 use ruint::aliases::U256;
+
+use rmpv;
+use rmpv::decode::read_value;
+
+type Params256Ty = ark_ec::bn::Bn<ark_bn254::Parameters>;
+
+pub const EXT_ID_U256_LE: i8 = 50;
+pub const EXT_ID_U256_BE: i8 = 51;
+
 
 #[derive(Debug, Clone)]
 pub struct StorageProofs {
@@ -39,6 +48,36 @@ impl StorageProofs {
             params,
             rng,
         }
+    }
+
+    pub fn prove_mpack(
+        &mut self,
+        inputs: &[u8],
+        proof_bytes: &mut Vec<u8>,
+        public_inputs_bytes: &mut Vec<u8>,
+    ) -> Result<(), String> {
+        let mut builder: CircomBuilder<Params256Ty> = self.builder.clone();
+
+        parse_mpack_args(&mut builder, inputs)?;
+
+        let circuit: CircomCircuit<Params256Ty> = builder.build()
+            .map_err(|e| e.to_string())?;
+
+        let inputs = circuit
+            .get_public_inputs()
+            .ok_or("Unable to get public inputs!")?;
+        let proof =
+            prove(circuit, &self.params, &mut self.rng)
+            .map_err(|e| e.to_string())?;
+
+        proof
+            .serialize(proof_bytes)
+            .map_err(|e| e.to_string())?;
+        inputs
+            .serialize(public_inputs_bytes)
+            .map_err(|e| e.to_string())?;
+
+        Ok(())
     }
 
     pub fn prove(
@@ -95,4 +134,96 @@ impl StorageProofs {
 
         Ok(())
     }
+}
+
+fn decode_number(val: &rmpv::Value) -> Result<U256, String> {
+    match val {
+        rmpv::Value::Ext(id, val) => {
+            match *id {
+                EXT_ID_U256_LE =>
+                    match U256::try_from_le_slice(val) {
+                        Some(i) => Ok(i),
+                        None => Err("error parsing 256".to_string()),
+                    }
+                num => return Err(format!("unhandled ext id {}", num)),
+            }
+        },
+        rmpv::Value::Integer(val) => {
+            if let Some(val) = val.as_u64() {
+                return Ok(U256::from(val));
+            } else if let Some(val) = val.as_i64() {
+                return Ok(U256::from(val));
+            } else {
+                return Err("unexpected integer kind".to_string());
+            }
+        }
+        _ => return Err("expected ext mpack kind or integer".to_string()),
+    }
+}
+
+fn parse_mpack_arrays(
+    builder: &mut CircomBuilder<Params256Ty>,
+    name: &str,
+    array: &Vec<rmpv::Value>
+) -> Result<(), String> {
+
+    println!("deserde: array: {} size: {}", name, array.len());
+    if array.len() > 0 && array[0].is_array() {
+        println!("deserde: arrayOfArrays: {}", name);
+        for element in array {
+            match element .as_array() {
+                Some(element ) => {
+                    parse_mpack_arrays(builder, name, element)?;
+                },
+                _ => {
+                    print!("error expected array: {}", name);
+                    return Err("expected inner array of u256".to_string())
+                },
+            }
+        }
+    } else {
+        println!("deserde: name: {}", name);
+        for val in array {
+            let n = decode_number(val)?;
+            println!("\t{}", n);
+            builder.push_input(name, n);
+        }
+        println!("done: name: {}", name);
+    }
+
+    Ok(())
+}
+
+fn parse_mpack_args(
+    builder: &mut CircomBuilder<Params256Ty>,
+    mut inputs: &[u8]
+) -> Result<(), String> {
+    let values: rmpv::Value = read_value(&mut inputs).map_err(|e| e.to_string())?;
+    let args: &Vec<(rmpv::Value, rmpv::Value)> = match values.as_map() {
+        Some(args) => args,
+        None => return Err("args must be a map of string to arrays".to_string()),
+    };
+
+    for (key, val) in args {
+        let name = match key.as_str() {
+            Some(n) => n,
+            None => return Err(format!("expected string value")),
+        };
+        match val {
+            // add a (name, Vec<u256>) or (name, Vev<Vec<u256>>) arrays
+            rmpv::Value::Array(vals) => {
+                parse_mpack_arrays(builder, name, vals)?;
+            },
+            // directly add a (name,u256) arg pair 
+            rmpv::Value::Ext(_, _) => {
+                let n = decode_number(val)?;
+                println!("deserde: name: {} u256: {}", name, n);
+                builder.push_input(name, n);
+            },
+            _ => return Err("unhandled argument kind".to_string()),
+        }
+    }
+
+    println!("parse_mpack_args DONE!");
+    Ok(())
 }
